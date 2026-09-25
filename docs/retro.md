@@ -57,7 +57,7 @@ The loop itself also found three defects no gate was designed for:
   `supersede-after-approving-successor`). It also wrote a local event ledger
   embedding absolute paths until `events: {subscribers: []}` stopped it, and
   its telemetry was on by default. Its AC spec contradicts its own template
-  (upstream issue drafted, not filed).
+  (filed upstream as https://github.com/specscore/specscore/issues/60).
 - **Beads**: the init commit above, default-on metrics, and a SessionEnd
   handoff that takes ~1.9 s against Claude Code's 1.5 s budget (now detached).
 - **Claude Code**: SessionEnd's budget cannot be raised by a plugin;
