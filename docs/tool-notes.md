@@ -494,6 +494,16 @@ connected (only Serena had), so the MCP line is a lower bound.
   The descriptions load wherever the plugin is enabled; Claude Code has no
   per-repo switch for them short of `disable-model-invocation`, which would also
   stop them triggering in initialized repos. MCP schemas stay deferred.
+  Accepted as-is (Decision 0014, Observed Consequences).
+- **`disable-model-invocation: true` blocks skill-to-skill calls.** Claude
+  invokes every skill through the Skill tool, and the flag removes the skill
+  from it: "By default, Claude can invoke any skill that doesn't have
+  `disable-model-invocation: true` set", and "To keep Claude from invoking it
+  through the Skill tool, set `disable-model-invocation: true`"
+  (https://code.claude.com/docs/en/skills, "Control who invokes a skill" and
+  "Restrict Claude's skill access"). A skill `route` hands off to runs as
+  Claude, so it could not load `blueprint`, `plan`, `forge` and the rest.
+  The lever is off the table permanently.
 
 ## 0.1.1 follow-ups (2026-09-25)
 

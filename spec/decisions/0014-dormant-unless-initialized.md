@@ -47,7 +47,7 @@ It runs after every edit, including mid-refactor states that are expected to fai
 
 ## Observed Consequences
 
-None observed yet.
+- 2026-09-25: Measured with `claude -p "/context"` in an uninitialized repo, the plugin adds no messages and no memory files; the eight skill descriptions add ~580 tokens (Skills 5.9K → 6.5K). Accepted by the human; the question is closed. `disable-model-invocation` is not a lever: it also blocks the model-invoked `route` from calling the other skills through the Skill tool (`docs/tool-notes.md`, 0.1.2).
 
 ## Affected Features
 
