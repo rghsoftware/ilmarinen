@@ -12,6 +12,15 @@ bin=${ILMARINEN_BIN:-$pkg/cli/target/debug/ilmarinen}
 work=$(mktemp -d); trap 'rm -rf "$work"' EXIT
 export ILMARINEN_CONFIG=$work/config SPECSCORE_TELEMETRY=0 BD_DISABLE_METRICS=1 DO_NOT_TRACK=1
 mkdir -p "$ILMARINEN_CONFIG"; echo 'opt_in_keyword = "full-depth"' > "$ILMARINEN_CONFIG/config.toml"
+# Regression (Lesson bd-init-before-stamping): bd init commits AGENTS.md,
+# CLAUDE.md, .claude/settings.json and .gitignore by name, so init refuses
+# while any of them has uncommitted changes.
+g=$work/guard; mkdir -p "$g"; git init -q "$g"; git -C "$g" config user.email f@example.invalid; git -C "$g" config user.name f
+echo "# mine" > "$g/AGENTS.md"; git -C "$g" add AGENTS.md; git -C "$g" commit -qm base; echo "edit" >> "$g/AGENTS.md"
+if "$bin" init "$g" >"$work/guard.out" 2>&1 || ! grep -q "bd init commits these paths" "$work/guard.out" || [ -d "$g/.beads" ]; then
+  echo "fixtures: init did not refuse a dirty AGENTS.md" >&2; cat "$work/guard.out" >&2; exit 1
+fi
+echo "fixtures: init refuses dirty bd-committed paths"
 failed=
 for f in "$@"; do
   echo "=== fixture $f"

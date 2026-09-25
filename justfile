@@ -29,6 +29,7 @@ test:
     dash tests/hooks.sh
     dash tests/trace.sh
     dash tests/scorecard.sh
+    dash tests/skills.sh
     bun test tests/opencode-plugin.test.ts
 
 # Regenerate hosts/opencode/ from plugin/ (an Artifact; never hand-edit it).

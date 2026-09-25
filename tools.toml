@@ -192,6 +192,15 @@ required = false
 role = "`just test` runner for Rust repos"
 scope = "dev"
 
+[tool.actionlint]
+detect = "actionlint -version"
+min = "1.7.12"
+mise = "github:rhysd/actionlint"
+install = "mise use -g github:rhysd/actionlint@1.7.12"
+required = false
+role = "lints GitHub Actions workflows (package and stamped templates)"
+scope = "dev"
+
 [tool.docker]
 detect = "docker --version"
 min = "24.0.0"

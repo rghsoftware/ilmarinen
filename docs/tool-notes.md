@@ -465,6 +465,20 @@ connected (only Serena had), so the MCP line is a lower bound.
 - Everything else in the session (other plugins' skills and agents, the
   developer's own `CLAUDE.md`) is not Ilmarinen's and is not counted.
 
+## 0.1.1 follow-ups (2026-09-25)
+
+- Lessons need a Control starting with a SpecScore mechanism token
+  (`product-test`, `cicd-workflow`, `spec-lint`, `claude-md-rule`, …) or
+  `none-yet: <why>` (rule L-010), and an Enforced Lesson's Evidence must be a
+  plain existing path, URL to a commit/blob, or `sha256:` (rule L-007,
+  `pkg/lint/lesson_rules.go` `stableLessonEvidenceAtProject`); backticks fail.
+- Regression tests per Phase 4 defect: Beads sweep (`tests/fixtures.sh`: Beads'
+  commit content, and init refusing dirty bd-committed paths); plan/verify
+  deadlock (`tests/skills.sh`, after the skill texts were aligned);
+  upgrade conflicts (Seed strategy unit tests).
+- `actionlint` is in `tools.toml` (dev scope) and `mise.toml`, so `doctor`
+  offers it (Lesson `install-only-through-doctor`).
+
 ## Phase 4 step 5b: trial instrumentation (2026-09-25)
 
 - `scripts/scorecard.sh` (stamped) appends v1 JSON lines to
@@ -484,9 +498,15 @@ connected (only Serena had), so the MCP line is a lower bound.
   Not detectable from a hook: `disableAllHooks` in Claude Code settings
   (no hook runs at all).
 - **SessionEnd hooks get 1.5 s, and plugin hook timeouts do not raise it**
-  (https://code.claude.com/docs/en/hooks, SessionEnd). Four `bd` calls take
-  ~1.9 s, so `session-end.sh` detaches the work and returns in ~12 ms; the
-  three-line note lands via `bd remember --key ilmarinen-handoff`.
+  (https://code.claude.com/docs/en/hooks, SessionEnd). Since 0.1.1 there are no
+  background writes: `session-end.sh` makes one `bd list --status
+  open,in_progress --json` call (~0.8 s) and writes the three-line note
+  synchronously to `~/.cache/ilmarinen/handoff/<repo>.md` (~0.78 s measured;
+  `tests/hooks.sh` fails above 1.5 s). `session-start.sh` flushes the file into
+  Beads (`bd remember --key ilmarinen-handoff`), deletes it, then prints the
+  note and `bd ready`. Approximation: "waiting on dependencies" means an open
+  issue with any dependency, closed or not; `bd ready` printed at start is exact.
+  (0.1.0 detached four `bd` calls instead.)
 - OpenCode: SessionEnd runs on `session.idle` (accepted gap
   `session-end-as-idle`); SessionStart context injection is impossible
   (accepted gap `session-start-context`), mitigated by one line in OpenCode's
