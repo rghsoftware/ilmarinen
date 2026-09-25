@@ -485,14 +485,15 @@ connected (only Serena had), so the MCP line is a lower bound.
   contents in `.git/ilmarinen-stop-check`; the status list is needed because
   empty new files have identical contents). OpenCode: runs on `session.idle`,
   advisory (accepted gap `stop-check-advisory`).
-- Session-start context in a repo that is not initialized, estimated from the
-  files (a live `claude -p "/context"` run was not permitted in this session,
-  and starting the MCP servers would recreate the removed Basic Memory state):
-  hooks print nothing (`tests/hooks.sh`); the eight skill descriptions are
-  ~406 tokens (1,626 bytes of name + description; 0.1.1 was ~342 tokens), and
-  load wherever the plugin is enabled because Claude Code has no per-repo
-  switch for them; plus the MCP schemas (deferred) and whatever the user's own
-  instruction files contain. Nothing else.
+- Session-start context in a repo that is not initialized, measured with
+  `claude -p "/context"` (Claude Code, 2026-09-25) in a fresh `git init` repo,
+  with and without `--plugin-dir plugin` (the plugin's MCP servers not started,
+  so no Basic Memory state is created): Messages 10 → 10 (SessionStart prints
+  nothing), Memory files 749 → 749 (the user's own `CLAUDE.md` only), Skills
+  5.9K → 6.5K (the eight descriptions, ~70-80 tokens each per `/context`).
+  The descriptions load wherever the plugin is enabled; Claude Code has no
+  per-repo switch for them short of `disable-model-invocation`, which would also
+  stop them triggering in initialized repos. MCP schemas stay deferred.
 
 ## 0.1.1 follow-ups (2026-09-25)
 
