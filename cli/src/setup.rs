@@ -242,9 +242,21 @@ fn claude_plugin(package: &Path) -> Result<()> {
         println!("  {} has no .claude-plugin/marketplace.json yet (Phase 2); skipping", package.display());
         return Ok(());
     }
-    let listed = util::sh("claude plugin list", None).map(|o| o.text).unwrap_or_default();
-    if listed.contains("ilmarinen@ilmarinen") {
-        println!("  ok       Claude Code plugin ilmarinen@ilmarinen");
+    let want: Value =
+        serde_json::from_str(&std::fs::read_to_string(package.join("plugin/.claude-plugin/plugin.json"))?)?;
+    let want = want.get("version").and_then(Value::as_str).unwrap_or_default().to_string();
+    let listed = util::sh("claude plugin list --json", None).map(|o| o.text).unwrap_or_default();
+    let installed = doctor::parse_plugins(&listed).unwrap_or_default();
+    if let Some(p) = installed.iter().find(|p| p.id == doctor::PLUGIN_ID && p.scope == "user") {
+        if p.version == want {
+            println!("  ok       Claude Code plugin {} {want}", doctor::PLUGIN_ID);
+        } else {
+            // Installed plugins are copies in Claude Code's cache; refresh the
+            // marketplace from the package checkout, then update.
+            util::run("claude", &["plugin", "marketplace", "update", "ilmarinen"], None)?;
+            util::run("claude", &["plugin", "update", doctor::PLUGIN_ID, "-s", "user"], None)?;
+            println!("  updated  Claude Code plugin {} {} → {want} (user scope)", doctor::PLUGIN_ID, p.version);
+        }
         return Ok(());
     }
     util::run("claude", &["plugin", "marketplace", "add", &package.to_string_lossy()], None)?;

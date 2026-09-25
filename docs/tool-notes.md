@@ -27,8 +27,14 @@ https://code.claude.com/docs/en/).
   `{"name","owner":{"name"},"plugins":[{"name":"ilmarinen","source":"./plugin"}]}`.
   Install: `claude plugin marketplace add <path|owner/repo>`, then
   `claude plugin install ilmarinen@<marketplace> [-s user|project|local]`.
-  Validate: `claude plugin validate .`. Local-directory marketplaces load
-  relative-path plugins in place (no copy).
+  Validate: `claude plugin validate .`. **Correction (2026-09-25):** an
+  installed plugin is a copy in `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`
+  even from a local-directory marketplace (observed with Claude Code 2.1.282),
+  so edits to `plugin/` reach sessions only after `claude plugin marketplace
+  update ilmarinen` and `claude plugin update ilmarinen@ilmarinen -s user`,
+  which `setup` now runs when the versions differ. A repo stamped with
+  `.claude/settings.json` (`enabledPlugins`) adds a project-scope entry for the
+  same plugin id; `doctor` counts plugin ids once.
 - **Skills**: all frontmatter optional; `name`, `description` used.
   `description` + `when_to_use` capped at 1,536 chars; body < 500 lines; only
   descriptions load at startup. Plugin skills invoke as `/ilmarinen:<skill>`.

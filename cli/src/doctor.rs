@@ -286,6 +286,8 @@ pub struct PluginInfo {
     pub version: String,
     #[serde(default)]
     pub enabled: bool,
+    #[serde(default)]
+    pub scope: String,
     #[serde(default, rename = "mcpServers")]
     pub mcp_servers: serde_json::Map<String, serde_json::Value>,
 }
@@ -297,9 +299,14 @@ pub fn parse_plugins(json: &str) -> Result<Vec<PluginInfo>> {
 /// Enabled plugins that declare the same MCP server name: (server, plugin ids).
 pub fn duplicate_servers(plugins: &[PluginInfo]) -> Vec<(String, Vec<String>)> {
     let mut by: BTreeMap<&str, Vec<String>> = BTreeMap::new();
+    // One plugin enabled at several scopes (user, and project via a stamped
+    // .claude/settings.json) is still one plugin.
     for p in plugins.iter().filter(|p| p.enabled) {
         for s in p.mcp_servers.keys() {
-            by.entry(s).or_default().push(p.id.clone());
+            let ids = by.entry(s).or_default();
+            if !ids.contains(&p.id) {
+                ids.push(p.id.clone());
+            }
         }
     }
     by.into_iter().filter(|(_, ids)| ids.len() > 1).map(|(s, ids)| (s.to_string(), ids)).collect()
@@ -317,7 +324,11 @@ fn check_plugins() -> Result<bool> {
     };
     let plugins = parse_plugins(&out.text)?;
     let mut ok = true;
-    match plugins.iter().find(|p| p.id == PLUGIN_ID) {
+    match plugins
+        .iter()
+        .find(|p| p.id == PLUGIN_ID && p.scope == "user")
+        .or_else(|| plugins.iter().find(|p| p.id == PLUGIN_ID))
+    {
         None => {
             println!("  ✘ {PLUGIN_ID} is not installed; run `ilmarinen setup`");
             ok = false;
@@ -452,6 +463,7 @@ mod tests {
           {"id":"ilmarinen@ilmarinen","version":"0.1.0","enabled":true,"mcpServers":{"context7":{},"serena":{}}},
           {"id":"context7@claude-plugins-official","version":"1.0.0","enabled":true,"mcpServers":{"context7":{}}},
           {"id":"off@x","version":"1","enabled":false,"mcpServers":{"serena":{}}},
+          {"id":"ilmarinen@ilmarinen","version":"0.1.0","enabled":true,"scope":"project","mcpServers":{"serena":{}}},
           {"id":"bare@x"}
         ]"#;
         let dups = duplicate_servers(&parse_plugins(json).unwrap());
