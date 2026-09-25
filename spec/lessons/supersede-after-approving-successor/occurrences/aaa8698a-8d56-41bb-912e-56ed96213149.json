@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "aaa8698a-8d56-41bb-912e-56ed96213149",
+  "occurred_at": "2026-09-24T17:20:07.74487429Z",
+  "summary": "decision new --supersedes left a one-sided link; change-status rolled back until the successor was approved first",
+  "context": {},
+  "evidence": {
+    "kind": "path",
+    "ref": "spec/decisions/archived/0008-mcp-closed-list.md"
+  },
+  "redactions": null
+}

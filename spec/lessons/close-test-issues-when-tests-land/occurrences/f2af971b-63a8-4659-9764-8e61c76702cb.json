@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "f2af971b-63a8-4659-9764-8e61c76702cb",
+  "occurred_at": "2026-09-25T15:49:37.883138371Z",
+  "summary": "plan's tests-first dependencies deadlock against verify's close-on-merge; forge closed test issues when their failing tests landed",
+  "context": {},
+  "evidence": {
+    "kind": "path",
+    "ref": "plugin/skills/verify/SKILL.md"
+  },
+  "redactions": null
+}

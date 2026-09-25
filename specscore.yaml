@@ -1,0 +1,16 @@
+# SpecScore Repo Config Schema: https://specscore.md/repo-config
+
+project:
+  title: Ilmarinen
+  host: github.com
+  org: rghsoftware
+  repo: ilmarinen
+
+lessons:
+  classifications:
+    - tooling
+    - process
+
+# No local event ledger: its records embed absolute paths.
+events:
+  subscribers: []
