@@ -1,0 +1,51 @@
+# CI for the Ilmarinen package. Every step calls a `just` target. The hosts
+# (Claude Code, OpenCode) are dev-scope tools and are never installed here.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  SPECSCORE_TELEMETRY: "0"
+  BD_DISABLE_METRICS: "1"
+  MISE_USE_VERSIONS_HOST_TRACK: "0"
+  SEMGREP_SEND_METRICS: "off"
+  DO_NOT_TRACK: "1"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Build the CLI
+        run: just build
+      - name: Checks (fmt, clippy, spec lint, converter freshness)
+        run: just check
+      - name: Unit, hook, trace and OpenCode-plugin tests
+        run: just test
+      - name: doctor in CI mode
+        run: just doctor-ci
+
+  fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [rust, ts-vue, ts-svelte, python, mixed]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12
+      - name: init, just check, spec lint, trace
+        run: just fixtures ${{ matrix.fixture }}
