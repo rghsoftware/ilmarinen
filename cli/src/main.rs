@@ -1,4 +1,4 @@
-//! `ilmarinen`: doctor | setup | init | upgrade.
+//! `ilmarinen`: doctor | setup | init | upgrade | off | on.
 
 use ilmarinen::{assets, doctor, init, manifest, setup};
 
@@ -29,6 +29,11 @@ enum Cmd {
     Init(init::InitArgs),
     /// Show template changes since <repo> was stamped; apply only with confirmation.
     Upgrade { repo: PathBuf },
+    /// Turn Ilmarinen off in an initialized repo: writes .ilmarinen.off, which
+    /// every hook and skill respects (gitignored; per checkout).
+    Off { repo: Option<PathBuf> },
+    /// Turn Ilmarinen back on: removes .ilmarinen.off.
+    On { repo: Option<PathBuf> },
 }
 
 /// Every child process inherits the per-run telemetry opt-outs from tools.toml.
@@ -49,6 +54,8 @@ fn main() -> ExitCode {
         Cmd::Setup(a) => setup::run(&a).map(|_| true),
         Cmd::Init(a) => init::init(&a).map(|_| true),
         Cmd::Upgrade { repo } => init::upgrade(&repo).map(|_| true),
+        Cmd::Off { repo } => init::switch(repo.as_deref(), false).map(|_| true),
+        Cmd::On { repo } => init::switch(repo.as_deref(), true).map(|_| true),
     };
     match result {
         Ok(true) => ExitCode::SUCCESS,

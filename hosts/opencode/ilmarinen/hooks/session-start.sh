@@ -5,6 +5,7 @@
 # when the repo's leak guard is not wired. Stdout becomes session context.
 set -u
 cwd=$(jq -r '.cwd // empty' 2>/dev/null || true); [ -n "$cwd" ] || cwd=$(pwd)
+. "${0%/*}/active.sh"; ilm_active "$cwd" || exit 0
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
 cd "$root" || exit 0
 export BD_DISABLE_METRICS=1

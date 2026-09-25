@@ -21,6 +21,7 @@ Approved; superseded, never edited.
 | [0011](0011-always-on-mcp-five-servers.md) | Always-on MCP servers are a closed list of five; Beads is CLI only | Approved | 2026-09-24 | mcp, context-budget, beads | — |
 | [0012](0012-license-dependency-inventory.md) | License: Apache-2.0, with a corrected dependency inventory | Approved | 2026-09-24 | license | — |
 | [0013](0013-personal-memory-how-i-work.md) | Personal memory holds how I work, never what I own | Approved | 2026-09-24 | memory, privacy, basic-memory | — |
+| [0014](0014-dormant-unless-initialized.md) | Ilmarinen is dormant unless the repo is initialized | Approved | 2026-09-25 | plugin, hooks, activation | — |
 
 ## Open Questions
 

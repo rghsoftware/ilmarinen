@@ -18,6 +18,7 @@ and persistently (`setup`); see `tools.toml`.
 | `ilmarinen setup [--skip-mcp] [--package DIR]` | No input. Runs doctor's tool check without prompting and refuses on failure. Then config only: `config.toml` (`opt_in_keyword = "full-depth"`), `repos.toml`, an empty `leak-patterns.txt`, the empty personal memory project (`~/.config/ilmarinen/memory/`, Basic Memory project `agent-memory`), the managed block in `~/.claude/CLAUDE.md` and `~/.config/opencode/AGENTS.md`, the Claude Code plugin at user scope, the OpenCode layout, telemetry opt-outs. Detects nothing about the machine. Closes with a full doctor run. |
 | `ilmarinen init <repo> [--host H --org O --name R] [--no-beads]` | Stamps `templates/` (language parts only when detected), writes `.ilmarinen.version`, runs `bd init` in default mode (refuses unless the git index is clean, because Beads' single init commit includes anything staged; makes sure `bd metrics` is off first), `specscore spec lint`, and adds the repo to `repos.toml`. Idempotent. |
 | `ilmarinen upgrade <repo>` | Diffs current templates against the repo using `.ilmarinen.version`; shows every diff; applies only after confirmation, with a second confirmation per locally edited file. |
+| `ilmarinen off [repo]` / `ilmarinen on [repo]` | Writes or removes `.ilmarinen.off` beside the nearest `.ilmarinen.version` (gitignored, so per checkout). While it exists every hook and skill is dormant, exactly as in a repo that was never initialized (decision 0014). |
 
 ## `ilmarinen-convert`
 

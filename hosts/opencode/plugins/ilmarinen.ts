@@ -39,20 +39,17 @@ const RULES: Rule[] = [
     "timeoutMs": 10000
   },
   {
-    "event": "PostToolUse",
-    "tools": [
-      "Edit",
-      "Write"
-    ],
-    "when": null,
-    "script": "post-edit-check.sh",
-    "timeoutMs": 600000
-  },
-  {
     "event": "SessionEnd",
     "tools": [],
     "when": null,
     "script": "session-end.sh",
+    "timeoutMs": 600000
+  },
+  {
+    "event": "Stop",
+    "tools": [],
+    "when": null,
+    "script": "stop-check.sh",
     "timeoutMs": 600000
   }
 ]
@@ -97,8 +94,8 @@ export const IlmarinenHooks: Plugin = async ({ directory }) => ({
   },
   event: async ({ event }) => {
     if (event.type !== "session.idle") return
-    for (const r of RULES.filter((r) => r.event === "SessionEnd")) {
-      const { code, stderr } = await run(r, { hook_event_name: "SessionEnd", reason: "idle", cwd: directory }, directory)
+    for (const r of RULES.filter((r) => r.event === "SessionEnd" || r.event === "Stop")) {
+      const { code, stderr } = await run(r, { hook_event_name: r.event, reason: "idle", stop_hook_active: false, cwd: directory }, directory)
       if (code !== 0) console.warn(`ilmarinen: ${r.script} exited ${code}: ${stderr}`)
     }
   },

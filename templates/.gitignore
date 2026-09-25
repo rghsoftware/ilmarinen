@@ -17,3 +17,4 @@ specscore.local.yaml
 .specscore-lifecycle.lock
 **/.*.lifecycle-transaction.lock
 .specscore/
+.ilmarinen.off

@@ -5,6 +5,7 @@
 # hooks 1.5 s, so this makes one `bd list` call (~0.8 s) and no other.
 set -u
 cwd=$(jq -r '.cwd // empty' 2>/dev/null || true); [ -n "$cwd" ] || cwd=$(pwd)
+. "${0%/*}/active.sh"; ilm_active "$cwd" || exit 0
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -d "$root/.beads" ] && command -v bd >/dev/null 2>&1 || exit 0
 dir=${XDG_CACHE_HOME:-$HOME/.cache}/ilmarinen/handoff

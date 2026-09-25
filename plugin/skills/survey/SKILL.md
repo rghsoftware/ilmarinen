@@ -1,9 +1,11 @@
 ---
 name: survey
-description: Map a brownfield repo and draft as-is Decisions into the Artifacts cache ($HOME/.cache/ilmarinen/<repo>/). Writes nothing in the repo and never commits.
+description: Map a brownfield repo and draft as-is Decisions into the Artifacts cache ($HOME/.cache/ilmarinen/<repo>/). Writes nothing in the repo and never commits. Only in `ilmarinen init` repos.
 ---
 
 # survey
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 Output is an Artifact: rebuildable, never authoritative, never committed.
 Write only under `$HOME/.cache/ilmarinen/<repo>/` (`<repo>` is the repository

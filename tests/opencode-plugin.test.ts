@@ -9,6 +9,7 @@ import { IlmarinenHooks } from "../hosts/opencode/plugins/ilmarinen.ts"
 const repo = mkdtempSync(join(tmpdir(), "ilm-oc-"))
 Bun.spawnSync(["git", "init", "-q", repo])
 writeFileSync(join(repo, "justfile"), 'check lang="all":\n    @test "{{lang}}" != rust\n')
+writeFileSync(join(repo, ".ilmarinen.version"), "0.1.2\n")
 const hooks: any = await IlmarinenHooks({ directory: repo } as any)
 const before = (tool: string, args: object) => hooks["tool.execute.before"]({ tool, sessionID: "s", callID: "c" }, { args })
 
@@ -25,15 +26,20 @@ test("allows ordinary commands and reads", async () => {
 test("ignores tools it does not map", async () => {
   await before("webfetch", { url: "https://example.com" })
 })
-test("post-edit failure is appended to the tool output", async () => {
-  const f = join(repo, "x.rs"); writeFileSync(f, "")
-  const output = { title: "", output: "edited", metadata: {} }
-  await hooks["tool.execute.after"]({ tool: "edit", sessionID: "s", callID: "c", args: { filePath: f } }, output)
-  expect(output.output).toContain("just check rust")
-  const ok = { title: "", output: "edited", metadata: {} }
-  const py = join(repo, "y.py"); writeFileSync(py, "")
-  await hooks["tool.execute.after"]({ tool: "write", sessionID: "s", callID: "c", args: { filePath: py } }, ok)
-  expect(ok.output).toBe("edited")
+test("session.idle runs the Stop check; a failure is reported, not thrown", async () => {
+  writeFileSync(join(repo, "x.rs"), "")
+  const warned: string[] = []
+  const warn = console.warn
+  console.warn = (m: string) => { warned.push(m) }
+  try { await hooks.event({ event: { type: "session.idle", properties: {} } }) } finally { console.warn = warn }
+  expect(warned.join("\n")).toContain("just check rust")
+  Bun.spawnSync(["rm", join(repo, "x.rs")])
+})
+test("dormant in a repo that is not initialized", async () => {
+  const bare = mkdtempSync(join(tmpdir(), "ilm-oc-bare-"))
+  Bun.spawnSync(["git", "init", "-q", bare])
+  const dormant: any = await IlmarinenHooks({ directory: bare } as any)
+  await dormant["tool.execute.before"]({ tool: "bash", sessionID: "s", callID: "c" }, { args: { command: "git push --force" } })
 })
 test("session.idle runs the handoff hook quietly; other events are ignored", async () => {
   await hooks.event({ event: { type: "session.idle", properties: {} } })

@@ -1,9 +1,11 @@
 ---
 name: forge
-description: Implement the next ready Beads issue in its own git worktree, tests first, carrying specscore Source References, running the gates, never weakening a test.
+description: Implement the next ready Beads issue in its own git worktree, tests first, carrying specscore Source References, running the gates, never weakening a test. Only in `ilmarinen init` repos.
 ---
 
 # forge
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 1. Claim: `bd ready --json`, pick the first, `bd update <id> --claim`.
    (`trivial` work has no issue: skip claiming.)
@@ -16,7 +18,7 @@ description: Implement the next ready Beads issue in its own git worktree, tests
    `// specscore:implements feature/<slug>#req:<req-slug>`.
    Cross-repo targets use `specscore://<host>/<org>/<repo>/feature/<slug>#req:<r>`.
 5. Gates: `just check` and `just test` (and `just e2e` for UI changes) until
-   green. Hooks run `just check <lang>` after each edit; fix what they report.
+   green. At the end of each turn a Stop hook runs `just check <lang>` for changed languages; fix what it reports.
 6. Never weaken, skip or delete a test to make it pass. If a test is wrong,
    stop and say why; changing it needs the human.
 7. Commit in the worktree with a message naming the issue id. Never push with

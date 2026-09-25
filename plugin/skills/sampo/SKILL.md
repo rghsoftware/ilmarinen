@@ -1,9 +1,11 @@
 ---
 name: sampo
-description: After review, record what would recur as a SpecScore Lesson, withdraw contradicted Lessons, and propose promoting validated Lessons to Rules. Use at the end of every standard or major loop.
+description: After review, record what would recur as a SpecScore Lesson, withdraw contradicted Lessons, and propose promoting validated Lessons to Rules. Use at the end of every standard or major loop. Only in `ilmarinen init` repos.
 ---
 
 # sampo
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 Knowledge moves one way and gets shorter: Lesson → Rule or Decision →
 ast-grep/Semgrep rule → one line in `AGENTS.md`.

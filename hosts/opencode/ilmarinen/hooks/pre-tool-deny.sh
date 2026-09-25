@@ -1,15 +1,16 @@
 #!/bin/sh
-# Ilmarinen PreToolUse guard (Bash, Read, Grep). Exit 2 blocks; stderr is the reason.
+# Ilmarinen PreToolUse guard (Bash, Read, Grep), active only in initialized repos.
 # Generic rules only, no infrastructure lists: git push --force*; rm -rf outside
 # the worktree; reads of .env*; database or deploy commands whose target is not
 # local (non-loopback DB URLs or hosts, non-local kubectl/helm contexts, cloud CLIs).
 set -u
 input=$(cat)
 field() { printf '%s' "$input" | jq -r "$1 // empty"; }
+cwd=$(field .cwd); [ -n "$cwd" ] || cwd=$(pwd)
+. "${0%/*}/active.sh"; ilm_active "$cwd" || exit 0
 deny() { printf 'ilmarinen: blocked: %s\n' "$1" >&2; exit 2; }
 local_host() { case "$1" in localhost|::1|'[::1]'|0.0.0.0|/*) return 0 ;; esac; printf '%s' "$1" | grep -Eqx '127(\.[0-9]{1,3}){3}'; }
 tool=$(field .tool_name)
-cwd=$(field .cwd); [ -n "$cwd" ] || cwd=$(pwd)
 case "$tool" in
   Read|Grep) p=$(field '.tool_input.file_path // .tool_input.path')
     case "${p##*/}" in .env|.env.*) deny "reading $p (.env* is never read)" ;; esac; exit 0 ;;

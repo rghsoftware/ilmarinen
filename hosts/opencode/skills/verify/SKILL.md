@@ -1,9 +1,11 @@
 ---
 name: verify
-description: Run the deterministic gates, then have a fresh-context reviewer with no access to the implementer's reasoning check the change against the acceptance criteria only.
+description: Run the deterministic gates, then have a fresh-context reviewer with no access to the implementer's reasoning check the change against the acceptance criteria only. Only in `ilmarinen init` repos.
 ---
 
 # verify
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 1. Gates, from the worktree root: `just check`, `just test`, and `just e2e`
    when the change touches UI. `just trace` confirms every Source Reference

@@ -1,9 +1,11 @@
 ---
 name: blueprint
-description: Write the SpecScore Feature for major work, with EARS requirements and Given/When/Then acceptance criteria, lint it, and stop at gate 1 (intent and acceptance criteria).
+description: Write the SpecScore Feature for major work, with EARS requirements and Given/When/Then acceptance criteria, lint it, and stop at gate 1 (intent and acceptance criteria). Only in `ilmarinen init` repos.
 ---
 
 # blueprint
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 Produces one SpecScore Feature: `spec/features/<slug>/README.md`.
 

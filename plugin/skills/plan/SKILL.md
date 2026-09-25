@@ -1,9 +1,11 @@
 ---
 name: plan
-description: Decompose approved work into a Beads issue graph with dependencies, each issue carrying the specscore reference it serves; stop at gate 3 and print what is ready.
+description: Decompose approved work into a Beads issue graph with dependencies, each issue carrying the specscore reference it serves; stop at gate 3 and print what is ready. Only in `ilmarinen init` repos.
 ---
 
 # plan
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 The plan of record is a Beads graph. Never write tasks or TODO lists in markdown.
 

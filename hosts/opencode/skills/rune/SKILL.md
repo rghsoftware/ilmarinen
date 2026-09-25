@@ -1,9 +1,11 @@
 ---
 name: rune
-description: Record a hard-to-reverse engineering choice as a SpecScore Decision (context, choice, declined alternatives, consequences), lint it, and stop at gate 2.
+description: Record a hard-to-reverse engineering choice as a SpecScore Decision (context, choice, declined alternatives, consequences), lint it, and stop at gate 2. Only in `ilmarinen init` repos.
 ---
 
 # rune
+
+Dormant unless a `.ilmarinen.version` sits at or above the working directory with no `.ilmarinen.off` beside it; outside that, act only when invoked by name.
 
 Write a Decision only when a choice is expensive to undo (a dependency, a data
 format, a boundary, a protocol). Otherwise skip to `plan`.

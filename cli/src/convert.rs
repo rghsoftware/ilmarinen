@@ -27,6 +27,7 @@ const EVENTS: &[(&str, &str)] = &[
     ("PreToolUse", "tool.execute.before"),
     ("PostToolUse", "tool.execute.after"),
     ("SessionEnd", "event session.idle"),
+    ("Stop", "event session.idle"),
 ];
 
 /// The accepted gap types: standing differences between the hosts, reported
@@ -34,12 +35,8 @@ const EVENTS: &[(&str, &str)] = &[
 /// so neither a plugin change nor a host update widens the difference silently.
 pub const ACCEPTED: &[(&str, &str)] = &[
     (
-        "post-tool-use-advisory",
-        "PostToolUse cannot block or re-prompt in OpenCode: `tool.execute.after` runs after the tool; on exit 2 the plugin appends the hook's stderr to the tool output so the agent still sees the failure. On OpenCode the post-edit check is advisory.",
-    ),
-    (
-        "patch-tool-unhooked",
-        "OpenCode's `patch` tool (multi-file edits) has no single file path, so Edit|Write hooks do not run for it.",
+        "stop-check-advisory",
+        "The Stop check runs on OpenCode's `session.idle`, after the turn, and cannot block or hand a failure back to the agent; failures are only logged. On OpenCode it is advisory; the commit-time leak guard and the `verify` gates are the enforcement.",
     ),
     (
         "if-as-regex",
@@ -221,7 +218,7 @@ fn hooks(plugin: &Path, out: &mut Output) -> Result<()> {
         for g in groups.as_array().into_iter().flatten() {
             let matcher = g.get("matcher").and_then(Value::as_str).unwrap_or("*");
             let mut tools = Vec::new();
-            let session = event.starts_with("Session");
+            let session = event.starts_with("Session") || event == "Stop";
             for t in matcher.split(['|', ',']).map(str::trim).filter(|_| !session) {
                 match TOOLS.iter().find(|(c, _)| *c == t) {
                     Some((c, _)) => tools.push(*c),
@@ -396,8 +393,8 @@ export const IlmarinenHooks: Plugin = async ({ directory }) => ({
   },
   event: async ({ event }) => {
     if (event.type !== "session.idle") return
-    for (const r of RULES.filter((r) => r.event === "SessionEnd")) {
-      const { code, stderr } = await run(r, { hook_event_name: "SessionEnd", reason: "idle", cwd: directory }, directory)
+    for (const r of RULES.filter((r) => r.event === "SessionEnd" || r.event === "Stop")) {
+      const { code, stderr } = await run(r, { hook_event_name: r.event, reason: "idle", stop_hook_active: false, cwd: directory }, directory)
       if (code !== 0) console.warn(`ilmarinen: ${r.script} exited ${code}: ${stderr}`)
     }
   },
@@ -465,7 +462,7 @@ mod tests {
         assert_eq!(oc["mcp"].as_object().unwrap().len(), 5);
         assert!(oc["mcp"]["serena"]["command"].as_array().unwrap().contains(&json!("ide")));
         let ts = String::from_utf8(out.files[&PathBuf::from("plugins/ilmarinen.ts")].0.clone()).unwrap();
-        assert!(ts.contains("pre-tool-deny.sh") && ts.contains("leak-guard.sh") && ts.contains("post-edit-check.sh"));
+        assert!(ts.contains("pre-tool-deny.sh") && ts.contains("leak-guard.sh") && ts.contains("stop-check.sh"));
         assert!(out.files[&PathBuf::from("ilmarinen/hooks/pre-tool-deny.sh")].1, "scripts are executable");
     }
 }

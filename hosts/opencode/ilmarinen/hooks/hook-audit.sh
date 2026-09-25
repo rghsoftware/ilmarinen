@@ -6,6 +6,7 @@ set -u
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
 cwd=$(printf '%s' "$input" | jq -r '.cwd // empty'); [ -n "$cwd" ] || cwd=$(pwd)
+. "${0%/*}/active.sh"; ilm_active "$cwd" || exit 0
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -x "$root/scripts/scorecard.sh" ] || exit 0
 log() { (cd "$root" && scripts/scorecard.sh hook "$1" "$2" "$3") >/dev/null 2>&1 || true; }

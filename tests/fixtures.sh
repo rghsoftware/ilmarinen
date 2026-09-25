@@ -46,6 +46,19 @@ for f in "$@"; do
       just db-up
       just db-down
     fi
+    # Decision 0014: `ilmarinen off` makes the guard and every hook dormant;
+    # `ilmarinen on` restores them. The address is assembled at runtime.
+    leak=$(printf '%s.%s.%s.%s' 10 20 30 40)
+    "$bin" off . && [ -f .ilmarinen.off ]
+    printf 'x %s\n' "$leak" > ilm-dormant.txt; git add ilm-dormant.txt
+    git commit -qm "off: guard dormant" || { echo "off: leak guard still blocked" >&2; exit 1; }
+    o=$(printf '{"tool_name":"Bash","cwd":"%s","tool_input":{"command":"git push --force"}}' "$PWD" | sh "$pkg/plugin/hooks/pre-tool-deny.sh" 2>&1) \
+      && [ -z "$o" ] || { echo "off: deny hook not silent: $o" >&2; exit 1; }
+    "$bin" on . && [ ! -e .ilmarinen.off ]
+    printf 'y %s\n' "$leak" >> ilm-dormant.txt; git add ilm-dormant.txt
+    if git commit -qm "on: guard active" 2>/dev/null; then echo "on: leak guard did not block" >&2; exit 1; fi
+    git reset -q HEAD~1 && rm -f ilm-dormant.txt
+    echo "fixture $f: off/on verified"
   ) || failed="$failed $f"
 done
 [ -z "$failed" ] || { echo "fixtures FAILED:$failed" >&2; exit 1; }

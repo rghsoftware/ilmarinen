@@ -11,6 +11,36 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 pub const MARKER: &str = ".ilmarinen.version";
+/// Presence turns Ilmarinen off in an initialized repo (decision 0014).
+pub const OFF: &str = ".ilmarinen.off";
+
+/// Nearest directory at or above `start` holding the marker (decision 0014).
+pub fn marker_root(start: &Path) -> Option<PathBuf> {
+    let start = start.canonicalize().ok()?;
+    start.ancestors().find(|d| d.join(MARKER).is_file()).map(Path::to_path_buf)
+}
+
+/// `ilmarinen off` / `ilmarinen on`.
+pub fn switch(repo: Option<&Path>, on: bool) -> Result<()> {
+    let start = repo.map_or_else(std::env::current_dir, |p| Ok(p.to_path_buf()))?;
+    let Some(root) = marker_root(&start) else {
+        bail!("{} is not in an Ilmarinen repo (no {MARKER}); nothing to switch", start.display());
+    };
+    let off = root.join(OFF);
+    match (on, off.exists()) {
+        (true, true) => {
+            std::fs::remove_file(&off)?;
+            println!("Ilmarinen is on in {}", root.display());
+        }
+        (false, false) => {
+            util::write(&off, "# Ilmarinen is off in this checkout; `ilmarinen on` removes this file.\n")?;
+            println!("Ilmarinen is off in {} (hooks and skills are dormant)", root.display());
+        }
+        (true, false) => println!("Ilmarinen is already on in {}", root.display()),
+        (false, true) => println!("Ilmarinen is already off in {}", root.display()),
+    }
+    Ok(())
+}
 
 #[derive(clap::Args)]
 pub struct InitArgs {
@@ -512,6 +542,21 @@ mod tests {
         let late = format!("{beads}{GUARD}");
         assert_eq!(guard_first(&late), once);
         assert!(guard_first("").starts_with("#!/usr/bin/env sh\n# --- BEGIN ILMARINEN"));
+    }
+
+    #[test]
+    fn off_and_on_find_the_nearest_marker() {
+        let t = tempfile::TempDir::new().unwrap();
+        let root = t.path();
+        std::fs::create_dir_all(root.join("a/b")).unwrap();
+        assert!(switch(Some(&root.join("a/b")), false).is_err(), "uninitialized repos have nothing to switch");
+        std::fs::write(root.join(MARKER), "").unwrap();
+        assert_eq!(marker_root(&root.join("a/b")).unwrap(), root.canonicalize().unwrap());
+        switch(Some(&root.join("a/b")), false).unwrap();
+        assert!(root.join(OFF).is_file());
+        switch(Some(&root.join("a/b")), false).unwrap();
+        switch(Some(root), true).unwrap();
+        assert!(!root.join(OFF).exists());
     }
 
     #[test]

@@ -471,6 +471,29 @@ connected (only Serena had), so the MCP line is a lower bound.
 - Everything else in the session (other plugins' skills and agents, the
   developer's own `CLAUDE.md`) is not Ilmarinen's and is not counted.
 
+## 0.1.2: dormant unless initialized (2026-09-25)
+
+- Decision 0014. `plugin/hooks/active.sh` walks up from the hook's `cwd` to
+  the nearest `.ilmarinen.version`; none, or `.ilmarinen.off` beside it, and
+  the hook exits 0 silently. `leak-guard.sh` inlines the same walk because it
+  is also stamped into repos as a standalone git hook.
+- **Stop hook** (https://code.claude.com/docs/en/hooks, Stop): input carries
+  `stop_hook_active`; exit 2 feeds stderr back and Claude continues the turn.
+  `stop-check.sh` never blocks when `stop_hook_active` is true, so a check
+  that cannot be fixed ends the turn instead of looping. It skips a tree it
+  already passed (fingerprint of the status list, `git diff HEAD` and untracked
+  contents in `.git/ilmarinen-stop-check`; the status list is needed because
+  empty new files have identical contents). OpenCode: runs on `session.idle`,
+  advisory (accepted gap `stop-check-advisory`).
+- Session-start context in a repo that is not initialized, estimated from the
+  files (a live `claude -p "/context"` run was not permitted in this session,
+  and starting the MCP servers would recreate the removed Basic Memory state):
+  hooks print nothing (`tests/hooks.sh`); the eight skill descriptions are
+  ~406 tokens (1,626 bytes of name + description; 0.1.1 was ~342 tokens), and
+  load wherever the plugin is enabled because Claude Code has no per-repo
+  switch for them; plus the MCP schemas (deferred) and whatever the user's own
+  instruction files contain. Nothing else.
+
 ## 0.1.1 follow-ups (2026-09-25)
 
 - Lessons need a Control starting with a SpecScore mechanism token

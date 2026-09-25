@@ -13,6 +13,9 @@ if [ ! -t 0 ]; then
   cwd=$(printf '%s' "$input" | jq -r '.cwd // empty' 2>/dev/null || true)
   [ -n "${cwd:-}" ] && cd "$cwd"
 fi
+# Dormant unless initialized and not off (decision 0014); standalone copy of active.sh.
+d=$(pwd); while [ ! -f "$d/.ilmarinen.version" ]; do [ "$d" = / ] && exit 0; d=$(dirname "$d"); done
+[ -f "$d/.ilmarinen.off" ] && exit 0
 extras=${ILMARINEN_CONFIG:-$HOME/.config/ilmarinen}/leak-patterns.txt
 
 # Added lines of the staged diff, as "<file>: <line>".

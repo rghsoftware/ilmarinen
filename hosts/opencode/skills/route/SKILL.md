@@ -1,9 +1,16 @@
 ---
 name: route
-description: Classify a request as trivial, standard or major before any work starts, and name the gates that apply. Use first on every new request, and again whenever scope grows.
+description: Classify a request as trivial, standard or major before any work starts, and name the gates that apply. Use first on every new request, and again whenever scope grows. Only in `ilmarinen init` repos.
 ---
 
 # route
+
+0. Check activation first. Walk up from the working directory to the nearest
+   `.ilmarinen.version`. If there is none, or a `.ilmarinen.off` sits beside it,
+   Ilmarinen is dormant here: unless the human invoked this skill by name
+   (`/route`, `/ilmarinen:route`), stop and say nothing about Ilmarinen; answer
+   the request normally. Invoked by name, say the repo is not initialized (or is
+   off) and suggest `ilmarinen init .` (or `ilmarinen on`), then classify anyway.
 
 Classify the request before touching any file.
 

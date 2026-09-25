@@ -56,10 +56,18 @@ route → blueprint → rune? → plan → forge → verify → review → sampo
 The quality ceiling is set by the sensors, not by the model. Every repo has one
 `just check` that runs every deterministic check for every detected language,
 plus `just trace` for spec-to-code links and `specscore spec lint` for format.
-Hooks and CI call these targets; they never duplicate them. On OpenCode the
-post-edit check is advisory (it cannot block, and multi-file `patch` edits skip
-it); the commit-time leak guard and the `verify` gates are the enforcement on
-every host.
+Hooks and CI call these targets; they never duplicate them. A Stop hook runs
+`just check <lang>` once per turn for each language with uncommitted changes
+and hands failures back to the agent. On OpenCode it runs on `session.idle` and
+is advisory; the commit-time leak guard and the `verify` gates are the
+enforcement on every host.
+
+Ilmarinen is dormant unless the repo is initialized (decision 0014): every hook
+exits at once, printing and logging nothing, unless `.ilmarinen.version` sits in
+the working directory or its nearest ancestor (worktrees included) with no
+`.ilmarinen.off` beside it. `ilmarinen off` and `ilmarinen on` write and remove
+that file. Skills say so in their descriptions, and `route` refuses to start the
+workflow outside an active repo unless invoked by name.
 
 Production safety is by absence: the agent environment holds no production
 credentials, cloud profiles, kubeconfigs or connection strings. The deny hook
@@ -115,4 +123,6 @@ they are superseded.
 At session start: the 60-line map plus the pinned personal file (empty until
 the developer asks to remember something; at most 30 lines), and the
 tool schemas of the always-on MCP servers. Target under ~3K tokens. Measure it
-after any change to the plugin.
+after any change to the plugin. In a repo that is not initialized (or is off)
+the plugin adds only the MCP schemas and its skill descriptions, which the host
+loads for every installed plugin.

@@ -1,6 +1,6 @@
 {
   "name": "ilmarinen",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The Ilmarinen workflow: route, Blueprints, Runes, Forge, Sampo. Skills, guard hooks and five MCP servers.",
   "author": { "name": "rghsoftware" },
   "repository": "https://github.com/rghsoftware/ilmarinen",

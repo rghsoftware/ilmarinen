@@ -20,6 +20,36 @@ LL=$(printf '%s::%s' fe80 1)               # IPv6 link-local
 DOC6=$(printf '%s:%s::%s' 2001 db8 1)      # IPv6 documentation range, not private
 
 bash_in() { jq -n --arg c "$1" --arg d "${2:-$root}" '{tool_name:"Bash",cwd:$d,tool_input:{command:$c}}'; }
+cwd_in() { jq -n --arg d "$root" '{cwd:$d}'; }
+
+# Decision 0014: dormant unless initialized. With no .ilmarinen.version at or
+# above cwd, or with .ilmarinen.off beside it, every hook exits 0 silently on
+# inputs that would otherwise block, warn or log, and writes no scorecard line.
+mkdir -p "$repo/scripts"; cp "$H/../../templates/scripts/scorecard.sh" "$repo/scripts/"
+printf 'check lang="all":\n    @false\n' > "$repo/justfile"; printf 'fn x() {}\n' > "$repo/x.rs"
+printf 'db %s\n' "$PRIV" > "$repo/leak.txt"; git -C "$repo" add leak.txt
+dormant() { # label
+  for c in "git push --force" "cat .env" "git commit --no-verify -m x" "rm -rf /"; do
+    o=$(bash_in "$c" | sh "$H/pre-tool-deny.sh" 2>&1); check "$1 deny silent: $c" "0:" "$?:$o"
+    o=$(bash_in "$c" | sh "$H/hook-audit.sh" 2>&1); check "$1 audit silent: $c" "0:" "$?:$o"
+  done
+  o=$(jq -n --arg d "$root" '{tool_name:"Read",cwd:$d,tool_input:{file_path:".env"}}' | sh "$H/pre-tool-deny.sh" 2>&1); check "$1 read silent" "0:" "$?:$o"
+  o=$(cwd_in | sh "$H/leak-guard.sh" 2>&1); check "$1 leak-guard silent" "0:" "$?:$o"
+  o=$(cd "$repo" && sh "$H/leak-guard.sh" </dev/null 2>&1); check "$1 leak-guard (git hook) silent" "0:" "$?:$o"
+  o=$(jq -n --arg d "$root" '{cwd:$d,stop_hook_active:false}' | sh "$H/stop-check.sh" 2>&1); check "$1 stop-check silent" "0:" "$?:$o"
+  o=$(cwd_in | sh "$H/session-start.sh" 2>&1); check "$1 session-start silent" "0:" "$?:$o"
+  o=$(cwd_in | XDG_CACHE_HOME=$T/xdg-dormant sh "$H/session-end.sh" 2>&1); check "$1 session-end silent" "0:" "$?:$o"
+  [ ! -e "$T/xdg-dormant" ]; check "$1 session-end writes no handoff" 0 $?
+  [ ! -e "$repo/artifacts/scorecard.jsonl" ]; check "$1 no scorecard lines" 0 $?
+}
+dormant uninitialized
+touch "$repo/.ilmarinen.version" "$repo/.ilmarinen.off"
+dormant off
+sub=$repo/deep/er; mkdir -p "$sub"
+o=$(bash_in "git push --force" "$sub" | sh "$H/pre-tool-deny.sh" 2>&1); check "off seen from a subdirectory" "0:" "$?:$o"
+rm "$repo/.ilmarinen.off"
+bash_in "git push --force" "$sub" | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "on: nearest ancestor marker activates" 2 $?
+git -C "$repo" reset -q; rm -rf "$repo/leak.txt" "$repo/justfile" "$repo/x.rs" "$repo/scripts" "$repo/deep"
 deny() { bash_in "$2" | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "$1: $2" "$3" $?; }
 deny force1 "git push --force origin main" 2
 deny force2 "git push -f" 2
@@ -65,10 +95,10 @@ deny kube-remote "kubectl --context=shared-cluster get pods" 2
 deny kube-local "kubectl --context kind-dev get pods" 0
 deny helm-local "helm install x ./chart --kube-context k3d-test" 0
 for p in /x/.env /x/.env.production; do
-  jq -n --arg p "$p" '{tool_name:"Read",tool_input:{file_path:$p}}' | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "read $p" 2 $?
+  jq -n --arg p "$p" --arg d "$root" '{tool_name:"Read",cwd:$d,tool_input:{file_path:$p}}' | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "read $p" 2 $?
 done
-jq -n '{tool_name:"Read",tool_input:{file_path:"/x/envy.txt"}}' | sh "$H/pre-tool-deny.sh"; check "read envy" 0 $?
-jq -n '{tool_name:"Grep",tool_input:{pattern:"K",path:"/x/.env"}}' | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "grep .env" 2 $?
+jq -n --arg d "$root" '{tool_name:"Read",cwd:$d,tool_input:{file_path:"/x/envy.txt"}}' | sh "$H/pre-tool-deny.sh"; check "read envy" 0 $?
+jq -n --arg d "$root" '{tool_name:"Grep",cwd:$d,tool_input:{pattern:"K",path:"/x/.env"}}' | sh "$H/pre-tool-deny.sh" 2>/dev/null; check "grep .env" 2 $?
 grep -Eq '(^|[^._[:alnum:]])[a-z0-9-]+\.(com|net|org|io|dev|internal|local)([^[:alnum:]]|$)' "$H/pre-tool-deny.sh"; check "no hostnames in the deny hook" 1 $?
 
 # leak-guard: generic shapes; extras file optional and empty by default.
@@ -93,19 +123,29 @@ stage g.txt "ssh SECRET-HOST-42"; guard "optional extra (case-insensitive)" 2
 jq -n --arg d "$root" '{cwd:$d}' | sh "$H/leak-guard.sh" 2>/dev/null; check "leak via hook JSON cwd" 2 $?
 reset; rm "$ILMARINEN_CONFIG/leak-patterns.txt"
 stage g.txt "ssh SECRET-HOST-42"; guard "no extras file" 0
-git -C "$repo" commit -qm base
+git -C "$repo" add .ilmarinen.version; git -C "$repo" commit -qm base
 
-# post-edit-check
+# stop-check: once per turn, `just check <lang>` for languages with
+# uncommitted changes; exit 2 hands failures back; no re-block when
+# stop_hook_active; a tree that already passed is skipped.
 cat > "$repo/justfile" <<'EOF'
 check lang="all":
-    @test "{{lang}}" != rust
+    @echo "{{lang}}" >> .checks
+    @test "{{lang}}" != rust || test ! -e .rust-fails
 EOF
-edit() { jq -n --arg f "$1" '{tool_name:"Edit",tool_input:{file_path:$f}}' | sh "$H/post-edit-check.sh" 2>/dev/null; check "edit $1" "$2" $?; }
-touch "$repo/x.rs" "$repo/y.py" "$repo/z.txt"
-edit "$repo/x.rs" 2
-edit "$repo/y.py" 0
-edit "$repo/z.txt" 0
-edit "$T/not-a-repo.rs" 0
+printf '.checks\n.rust-fails\n' > "$repo/.git/info/exclude"
+git -C "$repo" add justfile; git -C "$repo" commit -qm justfile
+stop() { jq -n --arg d "${3:-$root}" --argjson a "${4:-false}" '{cwd:$d,stop_hook_active:$a}' | sh "$H/stop-check.sh" 2>/dev/null; check "stop: $1" "$2" $?; }
+stop "clean tree" 0; [ ! -e "$repo/.checks" ]; check "stop: clean tree runs nothing" 0 $?
+touch "$repo/z.txt"; stop "only non-code changes" 0; [ ! -e "$repo/.checks" ]; check "stop: txt runs nothing" 0 $?
+touch "$repo/y.py"; stop "python passes" 0; check "stop: scoped to python" python "$(cat "$repo/.checks")"
+stop "same tree skipped" 0; check "stop: fingerprint skips rerun" 1 "$(wc -l < "$repo/.checks" | tr -d ' ')"
+rm "$repo/.checks"; touch "$repo/.rust-fails" "$repo/x.rs"; stop "rust fails" 2
+check "stop: both languages checked" "python rust" "$(sort "$repo/.checks" | tr '\n' ' ' | sed 's/ $//')"
+stop "no re-block when stop_hook_active" 0 "$root" true
+rm "$repo/.rust-fails"; stop "fixed tree passes" 0
+stop "not a repo" 0 "$T"
+rm -f "$repo/.checks" "$repo/x.rs" "$repo/y.py" "$repo/z.txt"
 
 # Inside a linked worktree: the worktree is the boundary; config comes from
 # $ILMARINEN_CONFIG / $HOME, never from the checkout.
@@ -121,8 +161,9 @@ printf 'x %s\n' "$PRIV" > "$wt/c.txt"; git -C "$wt" add c.txt
 jq -n --arg d "$wroot" '{cwd:$d}' | sh "$H/leak-guard.sh" 2>/dev/null; check "worktree leak hit" 2 $?
 git -C "$wt" reset -q c.txt
 (cd "$wt" && sh "$H/leak-guard.sh" </dev/null); check "worktree leak clean" 0 $?
-cp "$repo/justfile" "$wt/justfile"; touch "$wt/x.rs"
-jq -n --arg f "$wt/x.rs" '{tool_name:"Edit",tool_input:{file_path:$f}}' | sh "$H/post-edit-check.sh" 2>/dev/null; check "worktree post-edit uses worktree justfile" 2 $?
+printf 'check lang="all":\n    @false\n' > "$wt/justfile"; touch "$wt/x.rs"
+jq -n --arg d "$wroot" '{cwd:$d}' | sh "$H/stop-check.sh" 2>/dev/null; check "worktree stop-check uses worktree justfile" 2 $?
+[ -f "$wt/.ilmarinen.version" ]; check "worktree carries the marker" 0 $?
 
 # hook-audit: logs bypasses into a stamped repo's scorecard, never blocks.
 mkdir -p "$repo/scripts"; cp "$H/../../templates/scripts/scorecard.sh" "$repo/scripts/"
@@ -135,11 +176,8 @@ audit "git status"
 n=$(wc -l < "$repo/artifacts/scorecard.jsonl" 2>/dev/null || echo 0); check "audit logged 3 bypasses" 3 "$n"
 jq -e 'select(.kind=="hook" and .detail=="hooksPath-override")' "$repo/artifacts/scorecard.jsonl" >/dev/null; check "audit hooksPath event" 0 $?
 
-# session hooks without Beads: silent, fast, exit 0.
+# session hooks without Beads: exit 0; start only warns about the guard.
 jq -n --arg d "$root" '{cwd:$d}' | sh "$H/session-end.sh"; check "session-end no beads" 0 $?
-out=$(jq -n --arg d "$root" '{cwd:$d}' | sh "$H/session-start.sh"); check "session-start no beads exit" 0 $?
-check "session-start no beads silent" "" "$out"
-touch "$repo/.ilmarinen.version"
 out=$(jq -n --arg d "$root" '{cwd:$d}' | sh "$H/session-start.sh")
 case "$out" in *"leak guard is not in"*) r=0 ;; *) r=1 ;; esac; check "session-start warns unwired guard" 0 $r
 jq -e 'select(.detail=="not-wired")' "$repo/artifacts/scorecard.jsonl" >/dev/null; check "unwired guard logged" 0 $?
@@ -149,6 +187,7 @@ jq -e 'select(.detail=="not-wired")' "$repo/artifacts/scorecard.jsonl" >/dev/nul
 if command -v bd >/dev/null 2>&1; then
   export XDG_CACHE_HOME=$T/xdg BD_DISABLE_METRICS=1
   b=$T/beadsrepo; git init -q "$b"; git -C "$b" config user.email t@example.invalid; git -C "$b" config user.name t
+  touch "$b/.ilmarinen.version"
   (cd "$b" && bd init --non-interactive --skip-agents --skip-hooks -q -p hb >/dev/null 2>&1)
   (cd "$b" && bd create "first task" -t task -p 1 >/dev/null 2>&1)
   ms() { t=$(date +%s%N 2>/dev/null); case "$t" in *N) echo $(( $(date +%s) * 1000 )) ;; *) echo $(( t / 1000000 )) ;; esac; }

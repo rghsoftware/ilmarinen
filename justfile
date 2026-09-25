@@ -15,7 +15,7 @@ default:
     @just --list
 
 # Every deterministic check. `lang` scopes it (rust | spec | all); the
-# post-edit hook passes the edited file's language.
+# Stop hook passes each changed language.
 check lang="all":
     @if [ "{{lang}}" = all ] || [ "{{lang}}" = rust ]; then cd cli && cargo fmt --check && cargo clippy --all-targets --features dev -- -D warnings; fi
     @if [ "{{lang}}" = all ] || [ "{{lang}}" = spec ]; then specscore spec lint; fi
