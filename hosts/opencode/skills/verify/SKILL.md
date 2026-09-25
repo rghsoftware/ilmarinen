@@ -31,5 +31,6 @@ description: Run the deterministic gates, then have a fresh-context reviewer wit
 5. Any `fail`, `not met` or `untested` goes back to `forge`. Otherwise the
    change is ready for the human's review (gate 4). Nothing merges without a
    human; never merge, and never enable auto-merge.
-6. On merge, the human (or you, when asked) closes the issue:
+6. On merge, the human (or you, when asked) closes the implementing issue
+   (tests-first issues were closed by `forge` when their tests landed):
    `bd close <id> --reason "<merged ref>"`. Next: `sampo`.

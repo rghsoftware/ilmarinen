@@ -81,7 +81,7 @@ pub fn run(a: &Args) -> Result<()> {
     upsert(&home.join(".claude/CLAUDE.md"), &format!("{body}\n@{PINNED_REF}"))?;
     // OpenCode cannot inject SessionStart context (converter gap `session-start-context`).
     let oc_body = format!(
-        "{body}\n- At session start in a repo with `.beads/`, run `bd recall ilmarinen-handoff` and `bd ready` before anything else."
+        "{body}\n- At session start in a repo with `.beads/`, read `~/.cache/ilmarinen/handoff/<repo name>.md` if it exists (else `bd recall ilmarinen-handoff`) and run `bd ready` before anything else."
     );
     upsert(&home.join(".config/opencode/AGENTS.md"), &oc_body)?;
     edit_opencode_json(&home, |cfg| {

@@ -31,8 +31,8 @@ Only the types below are accepted; any other type fails `ilmarinen-convert` and 
 - `post-tool-use-advisory`: PostToolUse cannot block or re-prompt in OpenCode: `tool.execute.after` runs after the tool; on exit 2 the plugin appends the hook's stderr to the tool output so the agent still sees the failure. On OpenCode the post-edit check is advisory.
 - `patch-tool-unhooked`: OpenCode's `patch` tool (multi-file edits) has no single file path, so Edit|Write hooks do not run for it.
 - `if-as-regex`: `if` conditions are re-implemented as regexes over the Bash command; only `Bash(<prefix> *)` and `Bash(<exact>)` forms convert.
-- `session-start-context`: SessionStart cannot inject context in OpenCode (`session.created` has no stdout channel), so the handoff note and `bd ready` are not shown automatically; OpenCode's user instructions tell the agent to run `bd recall ilmarinen-handoff` and `bd ready` at session start instead.
-- `session-end-as-idle`: SessionEnd has no OpenCode equivalent; the handoff hook runs on `session.idle` (after every agent turn) instead, so the Beads note is refreshed each turn rather than once at exit.
+- `session-start-context`: SessionStart cannot inject context in OpenCode (`session.created` has no stdout channel), so the handoff note and `bd ready` are not shown automatically; OpenCode's user instructions tell the agent to read the handoff note (`~/.cache/ilmarinen/handoff/<repo>.md`, else `bd recall ilmarinen-handoff`) and run `bd ready` at session start instead.
+- `session-end-as-idle`: SessionEnd has no OpenCode equivalent; the handoff hook runs on `session.idle` (after every agent turn) instead, so the handoff file is rewritten each turn rather than once at exit.
 - `json-output-ignored`: Hook JSON output (`permissionDecision`, `additionalContext`) is ignored; only exit code 2 blocks, as in Claude Code's exit-code protocol.
 
 Not used by this plugin, and not expressible in OpenCode: SessionStart context injection, Stop/SubagentStop blocking, UserPromptSubmit blocking, PreCompact/PostCompact, Notification, SessionEnd, PermissionRequest, and `prompt`/`agent`/`http`/`mcp_tool` handler types.

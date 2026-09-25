@@ -47,11 +47,11 @@ pub const ACCEPTED: &[(&str, &str)] = &[
     ),
     (
         "session-start-context",
-        "SessionStart cannot inject context in OpenCode (`session.created` has no stdout channel), so the handoff note and `bd ready` are not shown automatically; OpenCode's user instructions tell the agent to run `bd recall ilmarinen-handoff` and `bd ready` at session start instead.",
+        "SessionStart cannot inject context in OpenCode (`session.created` has no stdout channel), so the handoff note and `bd ready` are not shown automatically; OpenCode's user instructions tell the agent to read the handoff note (`~/.cache/ilmarinen/handoff/<repo>.md`, else `bd recall ilmarinen-handoff`) and run `bd ready` at session start instead.",
     ),
     (
         "session-end-as-idle",
-        "SessionEnd has no OpenCode equivalent; the handoff hook runs on `session.idle` (after every agent turn) instead, so the Beads note is refreshed each turn rather than once at exit.",
+        "SessionEnd has no OpenCode equivalent; the handoff hook runs on `session.idle` (after every agent turn) instead, so the handoff file is rewritten each turn rather than once at exit.",
     ),
     (
         "json-output-ignored",

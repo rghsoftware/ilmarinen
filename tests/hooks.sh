@@ -144,5 +144,25 @@ out=$(jq -n --arg d "$root" '{cwd:$d}' | sh "$H/session-start.sh")
 case "$out" in *"leak guard is not in"*) r=0 ;; *) r=1 ;; esac; check "session-start warns unwired guard" 0 $r
 jq -e 'select(.detail=="not-wired")' "$repo/artifacts/scorecard.jsonl" >/dev/null; check "unwired guard logged" 0 $?
 
+# Handoff: SessionEnd writes the note synchronously within Claude Code's 1.5 s
+# budget; SessionStart flushes it into Beads, removes the file, prints it first.
+if command -v bd >/dev/null 2>&1; then
+  export XDG_CACHE_HOME=$T/xdg BD_DISABLE_METRICS=1
+  b=$T/beadsrepo; git init -q "$b"; git -C "$b" config user.email t@example.invalid; git -C "$b" config user.name t
+  (cd "$b" && bd init --non-interactive --skip-agents --skip-hooks -q -p hb >/dev/null 2>&1)
+  (cd "$b" && bd create "first task" -t task -p 1 >/dev/null 2>&1)
+  ms() { t=$(date +%s%N 2>/dev/null); case "$t" in *N) echo $(( $(date +%s) * 1000 )) ;; *) echo $(( t / 1000000 )) ;; esac; }
+  s=$(ms); jq -n --arg d "$b" '{cwd:$d}' | sh "$H/session-end.sh"; took=$(( $(ms) - s ))
+  f=$XDG_CACHE_HOME/ilmarinen/handoff/$(basename "$b").md
+  [ "$(grep -c '^Stopped at: \|^Next: \|^Waiting on dependencies: ' "$f" 2>/dev/null)" = 3 ]; check "session-end writes three lines" 0 $?
+  grep -q '^Next: hb-.* first task' "$f"; check "session-end names the next issue" 0 $?
+  [ "$took" -lt 1500 ]; check "session-end fits the 1.5 s budget (${took} ms)" 0 $?
+  out=$(jq -n --arg d "$b" '{cwd:$d}' | sh "$H/session-start.sh")
+  [ ! -e "$f" ]; check "session-start flushes the file" 0 $?
+  (cd "$b" && bd recall ilmarinen-handoff 2>/dev/null | grep -q 'first task'); check "note is in Beads" 0 $?
+  case "$out" in *"Last session:"*"Next: hb-"*"Ready (bd ready):"*"first task"*) r=0 ;; *) r=1 ;; esac; check "session-start prints note then bd ready" 0 $r
+  ! grep -rq '&$\|) *&' "$H/session-end.sh"; check "session-end has no background writes" 0 $?
+fi
+
 echo "hooks: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

@@ -1,13 +1,16 @@
 #!/bin/sh
-# Ilmarinen SessionStart: print the Beads handoff note and `bd ready` first,
-# and log (and say) when the repo's leak guard is not wired. Stdout becomes
-# session context in Claude Code, so keep it short.
+# Ilmarinen SessionStart: flush the last session's handoff note from
+# ~/.cache/ilmarinen/handoff/<repo>.md into Beads (`bd remember --key
+# ilmarinen-handoff`), then print it and `bd ready` first. Also log (and say)
+# when the repo's leak guard is not wired. Stdout becomes session context.
 set -u
 cwd=$(jq -r '.cwd // empty' 2>/dev/null || true); [ -n "$cwd" ] || cwd=$(pwd)
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null) || exit 0
 cd "$root" || exit 0
 export BD_DISABLE_METRICS=1
 if [ -d .beads ] && command -v bd >/dev/null 2>&1; then
+  file=${XDG_CACHE_HOME:-$HOME/.cache}/ilmarinen/handoff/$(basename "$root").md
+  if [ -s "$file" ] && bd remember "$(cat "$file")" --key ilmarinen-handoff >/dev/null 2>&1; then rm -f "$file"; fi
   note=$(bd recall ilmarinen-handoff 2>/dev/null || true)
   echo "## Ilmarinen: session start"
   if [ -n "$note" ]; then echo "Last session:"; printf '%s\n' "$note" | sed 's/^/  /'; fi
