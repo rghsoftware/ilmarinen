@@ -1,6 +1,6 @@
 # `ilmarinen` CLI
 
-Install: `mise use -g github:rghsoftware/ilmarinen@0.1.1` (both binaries). Build
+Install: `mise use -g github:rghsoftware/ilmarinen@0.1.2` (both binaries). Build
 from source with `just build`; test with `just test`.
 Templates, `tools.toml`, `mise.toml` and `plugin/` are compiled in.
 

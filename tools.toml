@@ -25,18 +25,18 @@
 
 [tool.ilmarinen]
 detect = "ilmarinen --version"
-min = "0.1.1"
+min = "0.1.2"
 mise = "github:rghsoftware/ilmarinen"
-install = "mise use -g github:rghsoftware/ilmarinen@0.1.1"
+install = "mise use -g github:rghsoftware/ilmarinen@0.1.2"
 required = true
 role = "this package's CLI; version must match the installed plugin"
 scope = "all"
 
 [tool.ilmarinen-sampo]
 detect = "ilmarinen-sampo --version"
-min = "0.1.1"
+min = "0.1.2"
 mise = "github:rghsoftware/ilmarinen"
-install = "mise use -g github:rghsoftware/ilmarinen@0.1.1"
+install = "mise use -g github:rghsoftware/ilmarinen@0.1.2"
 required = true
 role = "Sampo MCP server (sampo.* tools); version must match the installed plugin"
 scope = "all"
