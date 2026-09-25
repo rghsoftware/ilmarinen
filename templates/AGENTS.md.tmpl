@@ -1,0 +1,43 @@
+# <%project%>
+
+<!-- Purpose: replace this line with one or two sentences on what this repo is for. -->
+
+Stack: <%stack%>. Workflow: Ilmarinen <%version%>
+(route → blueprint → rune → plan → forge → verify → review → sampo).
+
+## Commands
+
+- `just check` runs every deterministic check; `just check <lang>` scopes it (<%langs%>).
+- `just test` runs unit tests; `just e2e` runs end-to-end tests (UI changes).
+- `just trace` checks that every Source Reference resolves (writes `artifacts/traceability.md`).
+- `just stale` lists Lessons still unpromoted after six weeks; `just retro` prints the trial scorecard.
+- `just db-up` / `just db-down` start and remove throwaway local Postgres and SurrealDB.
+
+## Where things are
+
+- `spec/` holds Blueprints (`features/`) and Runes (`decisions/`, `rules/`,
+  `lessons/`) in SpecScore format; `specscore spec lint` must pass.
+- `docs/` holds human documentation.
+- Tasks live in Beads (`bd ready`, `bd create`, `bd update --claim`), never in markdown TODOs.
+- Generated output goes to `artifacts/` (gitignored); never treat it as the source of truth.
+
+## Routing
+
+Classify every request before starting: `trivial`, `standard` or `major`.
+It is `major` when the word `<%keyword%>` is used, or the change touches an
+interface contract, a data model, or more than one repo. State the depth and
+the reason in one sentence; never escalate silently; if scope grows, stop and
+re-route.
+
+## Source References
+
+- Implementing code: `specscore:implements feature/<slug>#req:<req-slug>`
+- Tests: `specscore:verifies feature/<slug>#ac:<ac-slug>`
+- Other repos: `specscore://<host>/<org>/<repo>/feature/<slug>#req:<req-slug>`
+
+## Never
+
+- Never read or write `.env*` files.
+- Never run a migration against anything but the local throwaway databases (`just db-up`).
+- Never force-push.
+- Nothing merges without a human.

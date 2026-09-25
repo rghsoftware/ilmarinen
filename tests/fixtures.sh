@@ -1,0 +1,43 @@
+#!/bin/sh
+# For each fixture: copy to a temp git repo, `ilmarinen init`, install the
+# project's own dependencies, then `just check`, `specscore spec lint` and
+# `scripts/trace.sh`. With FIXTURES_FULL=1 also `just test`, `just e2e` and
+# `just db-up` / `just db-down` (needs docker). Usage: tests/fixtures.sh [name...].
+# Tools come from PATH (mise); ILMARINEN_BIN overrides the CLI binary.
+set -eu
+pkg=$(cd "$(dirname "$0")/.." && pwd)
+bin=${ILMARINEN_BIN:-$pkg/cli/target/debug/ilmarinen}
+[ -x "$bin" ] || { echo "fixtures: $bin not built (just build or cargo build)" >&2; exit 1; }
+[ $# -gt 0 ] || set -- $(cd "$pkg/fixtures" && ls -d */ | tr -d /)
+work=$(mktemp -d); trap 'rm -rf "$work"' EXIT
+export ILMARINEN_CONFIG=$work/config SPECSCORE_TELEMETRY=0 BD_DISABLE_METRICS=1 DO_NOT_TRACK=1
+mkdir -p "$ILMARINEN_CONFIG"; echo 'opt_in_keyword = "full-depth"' > "$ILMARINEN_CONFIG/config.toml"
+failed=
+for f in "$@"; do
+  echo "=== fixture $f"
+  r=$work/$f; mkdir -p "$r"; cp -R "$pkg/fixtures/$f/." "$r/"
+  (
+    cd "$r"
+    git init -q && git config user.email fixture@example.invalid && git config user.name fixture
+    git remote add origin "https://github.com/ilmarinen-fixtures/$f.git"
+    git add -A && git commit -qm fixture
+    "$bin" init .
+    # Beads' own init commit may carry only .beads/ and its .gitignore block.
+    extra=$(git show --name-only --format= HEAD | grep -v -e '^\.beads/' -e '^\.gitignore$' || true)
+    [ -z "$extra" ] || { echo "bd init committed non-Beads files: $extra" >&2; exit 1; }
+    for d in $(find . -name package.json -not -path '*/node_modules/*' -exec dirname {} \;); do (cd "$d" && pnpm install --frozen-lockfile --silent); done
+    for d in $(find . -name pyproject.toml -not -path '*/.venv/*' -exec dirname {} \;); do (cd "$d" && uv sync --frozen --quiet); done
+    just check
+    specscore spec lint
+    scripts/trace.sh
+    grep -q 'ILMARINEN LEAK GUARD' "$(git rev-parse --path-format=absolute --git-path hooks)/pre-commit"
+    if [ "${FIXTURES_FULL:-0}" = 1 ]; then
+      just test
+      just e2e
+      just db-up
+      just db-down
+    fi
+  ) || failed="$failed $f"
+done
+[ -z "$failed" ] || { echo "fixtures FAILED:$failed" >&2; exit 1; }
+echo "fixtures: all passed ($*)"

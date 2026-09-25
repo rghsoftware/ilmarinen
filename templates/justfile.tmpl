@@ -1,0 +1,81 @@
+# Gates for <%project%>, stamped by Ilmarinen <%version%>. Hooks and CI call
+# these targets; they never duplicate them.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Per-run telemetry opt-outs (Ilmarinen tools.toml).
+export SPECSCORE_TELEMETRY := "0"
+export BD_DISABLE_METRICS := "1"
+export SEMGREP_SEND_METRICS := "off"
+export DO_NOT_TRACK := "1"
+
+default:
+    @just --list
+
+# Every deterministic check. `just check <lang>` scopes it (<%langs%>).
+check lang="all":
+<%#if rust%>
+    @if [ "{{lang}}" = all ] || [ "{{lang}}" = rust ]; then cd <%rust_dir%> && cargo clippy --all-targets -- -D warnings; fi
+<%/if%>
+<%#if ts%>
+    @if [ "{{lang}}" = all ] || [ "{{lang}}" = ts ]; then just _check-ts; fi
+<%/if%>
+<%#if python%>
+    @if [ "{{lang}}" = all ] || [ "{{lang}}" = python ]; then cd <%py_dir%> && uv run ruff check . && uv run pyright; fi
+<%/if%>
+    @if [ "{{lang}}" != spec ]; then ast-grep scan; fi
+    @if [ "{{lang}}" = all ] || [ "{{lang}}" = spec ]; then specscore spec lint && just trace; fi
+<%#if ts%>
+
+[private]
+_check-ts:
+    cd <%ts_dir%> && pnpm exec <%ts_typecheck%>
+    cd <%ts_dir%> && if [ -f biome.json ] || [ -f biome.jsonc ]; then pnpm exec biome check .; else pnpm exec eslint .; fi
+<%/if%>
+
+# Unit tests.
+test:
+<%#if rust%>
+    cd <%rust_dir%> && cargo nextest run
+<%/if%>
+<%#if ts%>
+    cd <%ts_dir%> && pnpm exec vitest run
+<%/if%>
+<%#if python%>
+    cd <%py_dir%> && uv run pytest -q
+<%/if%>
+    @true
+
+# End-to-end tests (Playwright) for UI changes.
+e2e:
+<%#if ts%>
+    cd <%ts_dir%> && if ls playwright.config.* >/dev/null 2>&1; then pnpm exec playwright test; else echo "no playwright.config.*; nothing to run"; fi
+<%else%>
+    @echo "no UI stack detected; nothing to run"
+<%/if%>
+
+# Source References resolve; Requirements without a verifying test are listed.
+trace:
+    scripts/trace.sh
+
+# Trial scorecard from artifacts/scorecard.jsonl; KEEP or REVISIT after five
+# finished features (criteria in scorecard.toml).
+retro:
+    scripts/retro.sh
+
+# Lessons still Recorded six weeks after their date, with no Promotes To.
+stale:
+    scripts/stale.sh
+
+# Throwaway local databases, bound to loopback; returns once both accept
+# connections. No credentials (trust auth, unauthenticated in-memory SurrealDB)
+# and no online version check.
+db-up:
+    docker run -d --rm --name <%project%>-postgres -p 127.0.0.1:55432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18
+    docker run -d --rm --name <%project%>-surrealdb -p 127.0.0.1:58000:8000 -e SURREAL_ONLINE_VERSION_CHECK=false surrealdb/surrealdb:v3.3.0 start --unauthenticated memory
+    @for _ in $(seq 60); do docker exec <%project%>-postgres pg_isready -q -U postgres && break; sleep 1; done; docker exec <%project%>-postgres pg_isready -U postgres
+    @for _ in $(seq 60); do docker exec <%project%>-surrealdb /surreal is-ready >/dev/null 2>&1 && break; sleep 1; done; docker exec <%project%>-surrealdb /surreal is-ready
+    @echo "postgres://postgres@127.0.0.1:55432/postgres  ws://127.0.0.1:58000"
+
+db-down:
+    -docker rm -f <%project%>-postgres <%project%>-surrealdb

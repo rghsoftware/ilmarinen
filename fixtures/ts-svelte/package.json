@@ -1,0 +1,12 @@
+{
+  "name": "greeting-svelte",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

@@ -1,0 +1,23 @@
+# SpecScore Repo Config Schema: https://specscore.md/repo-config
+
+project:
+  title: <%project%>
+  host: <%host%>
+  org: <%org%>
+  repo: <%repo%>
+
+# No SpecScore Studio links in generated Features.
+studio: null
+
+# No plans_repo: tasks live in Beads, and spec/plans/ is never created.
+
+lessons:
+  classifications:
+    - process
+    - tooling
+    - testing
+    - architecture
+
+# No local event ledger: its records embed absolute paths.
+events:
+  subscribers: []

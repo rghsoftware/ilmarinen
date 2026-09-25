@@ -1,0 +1,4 @@
+# ast-grep project config. Enforceable Runes live in rules/ as YAML rules;
+# `just check` runs `ast-grep scan`.
+ruleDirs:
+  - rules

@@ -1,0 +1,20 @@
+# Trial scorecard criteria, read by `just retro` (scripts/retro.sh).
+# Tune freely; one `key = value` per line. Events live in artifacts/scorecard.jsonl.
+
+[verdict]
+# A verdict (KEEP or REVISIT) is printed once this many features are finished,
+# judged over the most recent this-many finished features.
+features = 5
+# At least this many gate events with caught=true across those features.
+min_catches = 1
+# At most this many hook disable/bypass events.
+max_hook_disables = 2
+# No single gate may be skipped without a reason (or silently missing) more
+# than this many times across those features.
+max_unreasoned_skips = 2
+
+[gates]
+# Gates each depth must record, fired or skipped-with-reason.
+trivial = ["checks", "review", "merge"]
+standard = ["plan", "checks", "review", "merge"]
+major = ["intent", "decision", "plan", "checks", "review", "merge"]

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(just *)",
+      "Bash(cargo *)",
+      "Bash(pnpm *)",
+      "Bash(uv run *)",
+      "Bash(bd *)",
+      "Bash(specscore *)",
+      "Bash(git *)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(git push -f *)",
+      "Bash(git push * --force *)",
+      "Bash(git push * --force-with-lease *)",
+      "Bash(git push * -f *)",
+      "Read(.env*)",
+      "Edit(.env*)"
+    ]
+  },
+  "enabledPlugins": {
+    "ilmarinen@ilmarinen": true
+  }
+}

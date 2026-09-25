@@ -1,0 +1,63 @@
+# Stamped by Ilmarinen <%version%>. Gates on every pull request; an advisory
+# agent review against the Acceptance Criteria. Nothing here merges.
+#
+# GitLab CI: put the same two jobs in `.gitlab-ci.yml` under
+# `rules: - if: $CI_PIPELINE_SOURCE == "merge_request_event"`; install mise with
+# its install script instead of jdx/mise-action; run the review with
+# `claude -p --model claude-sonnet-5 --max-turns 15` and ANTHROPIC_API_KEY from a
+# masked CI/CD variable; use `timeout:` instead of `timeout-minutes:`; merge
+# approval rules replace branch protection.
+name: ci
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  SPECSCORE_TELEMETRY: "0"
+  BD_DISABLE_METRICS: "1"
+  DO_NOT_TRACK: "1"
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+<%#if ts%>
+      - run: pnpm install --frozen-lockfile
+        working-directory: <%ts_dir%>
+<%/if%>
+<%#if python%>
+      - run: uv sync --frozen
+        working-directory: <%py_dir%>
+<%/if%>
+      - run: just check
+      - run: just test
+
+  agent-review:
+    # Advisory only: reports against the Acceptance Criteria; never approves,
+    # merges or pushes. There is no auto-merge anywhere in this workflow.
+    needs: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: "--model claude-sonnet-5 --max-turns 15"
+          prompt: |
+            Review this pull request against the Acceptance Criteria only.
+            Read the Features it touches under spec/features/ and the diff
+            against the base branch. For each AC report met, not met or
+            untested, with the test or line that shows it. No style comments.
+            Do not approve, merge or push.

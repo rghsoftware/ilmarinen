@@ -1,0 +1,32 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Same intent as .claude/settings.json. The last matching rule wins.
+  // Skills, hooks and MCP servers come from the global Ilmarinen install (`ilmarinen setup`).
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "just *": "allow",
+      "cargo *": "allow",
+      "pnpm *": "allow",
+      "uv run *": "allow",
+      "bd *": "allow",
+      "specscore *": "allow",
+      "git *": "allow",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git push * --force*": "deny",
+      "git push * -f*": "deny"
+    },
+    "read": { "*": "allow", "*.env": "deny", "*.env.*": "deny" },
+    "edit": { "*": "allow", "*.env": "deny", "*.env.*": "deny" }
+  }
+  // TODO: local model endpoint. Fill in and uncomment once a local server runs.
+  // "provider": {
+  //   "local": {
+  //     "npm": "@ai-sdk/openai-compatible",
+  //     "name": "Local",
+  //     "options": { "baseURL": "http://127.0.0.1:8080/v1" },
+  //     "models": { "<model-id>": { "name": "<model name>" } }
+  //   }
+  // }
+}

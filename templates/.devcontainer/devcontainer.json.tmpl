@@ -1,0 +1,20 @@
+// Stamped by Ilmarinen <%version%>. Toolchains, pinned tools (mise.toml), and
+// what Serena's language servers need. Production safety is by absence: mount
+// or copy no production credentials, cloud profiles, kubeconfigs or connection
+// strings into this container.
+{
+  "name": "<%project%>",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+<%#if rust%>
+    // rustup, clippy, rustfmt, rust-analyzer (Serena's Rust language server)
+    "ghcr.io/devcontainers/features/rust:1": {},
+<%/if%>
+    // Node 22 and pnpm: MCP servers via npx; Serena's TypeScript/Vue/Svelte servers
+    "ghcr.io/devcontainers/features/node:2": { "version": "22", "pnpmVersion": "latest" },
+    // Python 3.12+: pyright and the Python tooling
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.12", "installTools": false }
+  },
+  // mise installs the repo's pinned tools plus uv (Serena, Basic Memory, pyright).
+  "postCreateCommand": "curl -fsSL https://mise.run | sh && ~/.local/bin/mise trust && ~/.local/bin/mise install && ~/.local/bin/mise use -g uv@<%pin:uv%>"
+}

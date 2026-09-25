@@ -1,0 +1,19 @@
+# Ilmarinen: Artifacts and local state (generated, rebuildable, never committed)
+artifacts/
+.cache/
+.worktrees/
+.codegraph/
+.env
+.env.*
+!.env.example
+# Beads runtime files (.beads/.gitignore covers the Dolt store)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
+# SpecScore local files and state
+specscore.local.yaml
+.specscore-lifecycle.lock
+**/.*.lifecycle-transaction.lock
+.specscore/

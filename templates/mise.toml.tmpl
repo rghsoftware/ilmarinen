@@ -1,0 +1,18 @@
+# Tool versions for this repo, stamped by Ilmarinen <%version%> (pins from its mise.toml).
+
+[tools]
+just = "<%pin:just%>"
+"github:specscore/specscore-cli" = "<%pin:github:specscore/specscore-cli%>"
+"github:gastownhall/beads" = "<%pin:github:gastownhall/beads%>"
+ast-grep = "<%pin:ast-grep%>"
+jq = "<%pin:jq%>"
+<%#if rust%>
+"aqua:nextest-rs/nextest/cargo-nextest" = "<%pin:aqua:nextest-rs/nextest/cargo-nextest%>"
+<%/if%>
+<%#if python%>
+uv = "<%pin:uv%>"
+<%/if%>
+<%#if ts%>
+node = "22"
+pnpm = "12"
+<%/if%>
