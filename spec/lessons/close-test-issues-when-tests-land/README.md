@@ -1,11 +1,11 @@
 ---
 format: https://specscore.md/lesson-specification
-status: Recorded
+status: Enforced
 ---
 
 # Lesson: Close a tests-first issue when its failing tests are committed, not at merge
 
-**Status:** Recorded
+**Status:** Enforced
 **Date:** 2026-09-25
 **Owner:** rghsoftware
 **Classifications:** process
@@ -30,9 +30,9 @@ The `plan` skill makes implementation issues depend on tests-first issues, while
 
 ## Enforcement
 
-**Control:** none-yet: just recorded, mechanism not chosen yet
-**Verification:** —
-**Evidence:** —
+**Control:** product-test: tests/skills.sh checks that the plan, forge and verify skill texts agree
+**Verification:** `dash tests/skills.sh`
+**Evidence:** tests/skills.sh
 
 ## Open Questions
 

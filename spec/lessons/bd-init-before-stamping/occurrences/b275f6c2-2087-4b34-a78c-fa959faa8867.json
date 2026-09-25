@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "b275f6c2-2087-4b34-a78c-fa959faa8867",
+  "occurred_at": "2026-09-25T18:02:28.282300607Z",
+  "summary": "bd init committed stamped AGENTS.md, CLAUDE.md, .claude/settings.json and .gitignore in the first loop run",
+  "context": {},
+  "evidence": {
+    "kind": "path",
+    "ref": "tests/fixtures.sh"
+  },
+  "redactions": null
+}

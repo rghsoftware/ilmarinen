@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "5b6d2a8c-abbb-4a0f-85e1-1e1802521e8b",
+  "occurred_at": "2026-09-25T18:02:28.38095781Z",
+  "summary": "upgrade flagged SpecScore-maintained spec index files as conflicts on the first real upgrade",
+  "context": {},
+  "evidence": {
+    "kind": "path",
+    "ref": "cli/src/render.rs"
+  },
+  "redactions": null
+}

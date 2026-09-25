@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "9f2d8c74-8eb5-4f98-bba9-0024d19262a4",
+  "occurred_at": "2026-09-25T18:02:28.184275913Z",
+  "summary": "mise x installed actionlint without consent during Phase 4; now declared in tools.toml at dev scope",
+  "context": {},
+  "evidence": {
+    "kind": "path",
+    "ref": "tools.toml"
+  },
+  "redactions": null
+}
