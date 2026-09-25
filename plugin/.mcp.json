@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["-p", "3.13", "--from", "serena-agent==1.7.0", "serena", "start-mcp-server", "--context", "claude-code", "--project-from-cwd"],
+      "env": { "SERENA_USAGE_REPORTING": "false" }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@4.1.1"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@0.0.82", "--headless", "--isolated"]
+    },
+    "basic-memory": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "basic-memory==0.23.2", "--with", "fastmcp==4.0.0b1", "--with", "fastmcp-slim==4.0.0b1", "basic-memory", "mcp", "--project", "agent-memory"],
+      "env": { "BASIC_MEMORY_NO_PROMOS": "1" }
+    },
+    "sampo": {
+      "type": "stdio",
+      "command": "ilmarinen-sampo",
+      "args": ["serve"]
+    }
+  }
+}

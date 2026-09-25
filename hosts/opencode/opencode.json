@@ -1,0 +1,72 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "-p",
+        "3.13",
+        "--from",
+        "serena-agent==1.7.0",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide",
+        "--project-from-cwd"
+      ],
+      "enabled": true,
+      "environment": {
+        "SERENA_USAGE_REPORTING": "false"
+      }
+    },
+    "context7": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@upstash/context7-mcp@4.1.1"
+      ],
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.82",
+        "--headless",
+        "--isolated"
+      ],
+      "enabled": true
+    },
+    "basic-memory": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "basic-memory==0.23.2",
+        "--with",
+        "fastmcp==4.0.0b1",
+        "--with",
+        "fastmcp-slim==4.0.0b1",
+        "basic-memory",
+        "mcp",
+        "--project",
+        "agent-memory"
+      ],
+      "enabled": true,
+      "environment": {
+        "BASIC_MEMORY_NO_PROMOS": "1"
+      }
+    },
+    "sampo": {
+      "type": "local",
+      "command": [
+        "ilmarinen-sampo",
+        "serve"
+      ],
+      "enabled": true
+    }
+  }
+}

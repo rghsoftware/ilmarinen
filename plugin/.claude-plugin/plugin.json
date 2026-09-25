@@ -1,0 +1,9 @@
+{
+  "name": "ilmarinen",
+  "version": "0.1.0",
+  "description": "The Ilmarinen workflow: route, Blueprints, Runes, Forge, Sampo. Skills, guard hooks and five MCP servers.",
+  "author": { "name": "rghsoftware" },
+  "repository": "https://github.com/rghsoftware/ilmarinen",
+  "license": "Apache-2.0",
+  "keywords": ["workflow", "specscore", "beads", "spec-driven"]
+}

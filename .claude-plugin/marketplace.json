@@ -1,0 +1,14 @@
+{
+  "name": "ilmarinen",
+  "owner": {
+    "name": "rghsoftware"
+  },
+  "description": "Ilmarinen: an agentic software-development workflow (plugin + OpenCode layout).",
+  "plugins": [
+    {
+      "name": "ilmarinen",
+      "source": "./plugin",
+      "description": "The Ilmarinen workflow: route, Blueprints, Runes, Forge, Sampo."
+    }
+  ]
+}
