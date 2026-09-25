@@ -42,7 +42,7 @@ pub struct ToolCheck {
 
 pub fn run(args: &Args) -> Result<Report> {
     let tools_ok = check_tools(&ToolCheck { yes: args.yes, offer: true, ci: args.skip_mcp })?;
-    check_telemetry()?;
+    check_telemetry(args.skip_mcp)?;
     let (mcp_ok, personal_ok) = if args.skip_mcp {
         println!("\nCI mode (--skip-mcp): dev-scope tools, installed plugin, MCP liveness and personal state skipped");
         (true, true)
@@ -149,10 +149,10 @@ fn mise_install(specs: &[String]) -> Result<()> {
 
 /// Report every tool that phones home and whether its opt-out is confirmed.
 /// Unconfirmed opt-outs are reported, not failed: `setup` fixes them.
-pub fn check_telemetry() -> Result<Vec<String>> {
+pub fn check_telemetry(ci: bool) -> Result<Vec<String>> {
     let tools = manifest::parse(&assets::tools_toml())?;
     let mut unconfirmed = Vec::new();
-    let with: Vec<&Tool> = tools.iter().filter(|t| t.telemetry.is_some()).collect();
+    let with: Vec<&Tool> = tools.iter().filter(|t| t.telemetry.is_some() && (!ci || t.in_ci())).collect();
     if with.is_empty() {
         return Ok(unconfirmed);
     }

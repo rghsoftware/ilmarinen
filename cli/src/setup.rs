@@ -350,7 +350,7 @@ fn telemetry_opt_out() -> Result<()> {
             None => println!("  ! {:<12} no persistent opt-out; per-run env only", t.name),
         }
     }
-    let unconfirmed = doctor::check_telemetry()?;
+    let unconfirmed = doctor::check_telemetry(false)?;
     if !unconfirmed.is_empty() {
         println!("  unconfirmed: {}", unconfirmed.join(", "));
     }

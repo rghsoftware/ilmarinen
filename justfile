@@ -45,8 +45,9 @@ fixtures *names:
     tests/fixtures.sh {{names}}
 
 # doctor in CI mode: ci/all scope tools only, no hosts, no MCP, no per-machine state.
+# The binaries under test are the ones just built, so they go first on PATH.
 doctor-ci:
-    cd cli && cargo run -q --bin ilmarinen -- doctor --skip-mcp
+    cd cli && cargo build -q --bin ilmarinen --bin ilmarinen-sampo && PATH="$PWD/target/debug:$PATH" target/debug/ilmarinen doctor --skip-mcp
 
 # Static release binary (glibc crt-static; no extra rustup target needed).
 build:
