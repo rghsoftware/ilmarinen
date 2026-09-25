@@ -46,8 +46,8 @@ route → blueprint → rune? → plan → forge → verify → review → sampo
   fresh-context reviewer with no access to the implementer's reasoning reports
   against the ACs only.
 - **review**: the human reviews the diff; comments go back to the agent; gate 4.
-- **sampo**: record what would recur as a Lesson; mark contradicted Lessons
-  stale; propose promotion.
+- **sampo**: record what would recur as a Lesson; set contradicted Lessons to
+  `Withdrawn`; propose promotion.
 
 `trivial` work runs `forge → verify → review` only and emits no Blueprint.
 
@@ -56,7 +56,18 @@ route → blueprint → rune? → plan → forge → verify → review → sampo
 The quality ceiling is set by the sensors, not by the model. Every repo has one
 `just check` that runs every deterministic check for every detected language,
 plus `just trace` for spec-to-code links and `specscore spec lint` for format.
-Hooks and CI call these targets; they never duplicate them.
+Hooks and CI call these targets; they never duplicate them. On OpenCode the
+post-edit check is advisory (it cannot block, and multi-file `patch` edits skip
+it); the commit-time leak guard and the `verify` gates are the enforcement on
+every host.
+
+Production safety is by absence: the agent environment holds no production
+credentials, cloud profiles, kubeconfigs or connection strings. The deny hook
+adds generic rules only (force-push, `rm -rf` outside the worktree, `.env*`
+reads, database or deploy commands whose target is not local: non-loopback
+database targets, non-local `kubectl`/`helm` contexts, cloud CLIs). It never
+carries a list of hosts or any other description of the developer's
+infrastructure.
 
 Guides are short. `AGENTS.md` is a map of at most 60 lines. Nothing else
 auto-loads. Knowledge is fetched on demand through the Sampo index and the
@@ -72,19 +83,36 @@ Lesson (spec/lessons/)  →  validated  →  Rune (Rule or Decision)
                                       →  one line in AGENTS.md
 ```
 
-Once promoted, the Lesson is marked promoted. Lessons not promoted within six
-weeks are flagged by `just stale` and deleted at review. Runes are never edited;
+Promotion uses `specscore rule promote --from-lesson <lesson> <rule>`, which
+records the Rule, writes `**Promotes To:** rule:<rule>` into the Lesson and
+`lesson:<lesson>` into the Rule's `**Sources:**` (lint checks both halves). The
+Lesson's status then climbs SpecScore's ladder: `Stated` once the rule is in
+guidance, `Enforced` once a deterministic control is active (with
+`**Control:**`, `**Verification:**`, `**Evidence:**`). Lessons still `Recorded`
+six weeks after their `**Date:**` with no `**Promotes To:**` are flagged by
+`just stale` and deleted at review. Contradicted Lessons are set to `Withdrawn`.
+We use SpecScore's fields; we never invent our own. Runes are never edited;
 they are superseded.
 
 ## Memory boundaries
 
 - If a fact is true for anyone who clones the repo, it belongs in the repo.
-- If it mentions the developer, their machines, or their preferences, it belongs
-  in personal memory and never in a repo. A pre-commit leak guard enforces this.
+- How the developer works (preferences that are not workflow rules, recurring
+  decisions and their reasons, tooling lessons that are not repo-specific,
+  standing instructions about them as a collaborator) belongs in personal
+  memory, written only when they explicitly ask to remember it, and never in a
+  repo (decision 0013).
+- What the developer owns (identity, usernames, hostnames, hardware, network
+  addresses or ranges, paths, accounts, deployment targets, anything
+  credential-adjacent) is stored nowhere: not in memory, not in a repo, not in
+  Ilmarinen's config. When a session needs such a fact, the agent runs a command
+  and does not persist the result. The pre-commit leak guard blocks the generic
+  shapes (home-directory paths, private addresses, `.env*` contents).
 - Task state and in-flight notes live in Beads, never in tracked markdown.
 
 ## Context budget
 
-At session start: the 60-line map plus a 30-line pinned personal file, and the
+At session start: the 60-line map plus the pinned personal file (empty until
+the developer asks to remember something; at most 30 lines), and the
 tool schemas of the always-on MCP servers. Target under ~3K tokens. Measure it
 after any change to the plugin.

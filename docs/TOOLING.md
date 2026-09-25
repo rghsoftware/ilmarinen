@@ -9,22 +9,22 @@ supply the workflow. Each must be replaceable without touching
 | Tool | Role in Ilmarinen | Adopted as | License | Replace with, if it dies |
 |---|---|---|---|---|
 | SpecScore (`spec/` format, `specscore` CLI) | Blueprints and Runes on disk; Source References for code↔spec links | file format + lint | spec CC-BY-4.0; CLI Apache-2.0 | keep the Markdown; ~100-line reference checker from the published regex |
-| Beads (`bd`) | task graph; plan of record; volatile project memory (`bd remember`) | CLI (+ MCP if offered) | MIT | any issue tracker with dependencies |
-| Basic Memory | personal/operator memory across hosts | MCP server + note format | AGPL-3.0 (called, not distributed) | markdown files + FTS index |
-| Serena | code intelligence (LSP-backed symbols) | always-on MCP | MIT | LSP directly |
-| Context7 | current library docs | always-on MCP | see upstream | web search |
+| Beads (`bd`) | task graph; plan of record; volatile project memory (`bd remember`) | CLI only, never MCP (decision 0011) | MIT | any issue tracker with dependencies |
+| Basic Memory | personal memory across hosts: how the developer works, never what they own (decision 0013) | MCP server + note format | AGPL-3.0 (called, not distributed) | markdown files + FTS index |
+| Serena | code intelligence (LSP-backed symbols) | always-on MCP | GPL-3.0-or-later (called over MCP, never vendored; decision 0012) | LSP directly |
+| Context7 | current library docs | always-on MCP | MIT | web search |
 | Playwright MCP | UI verification | always-on MCP | Apache-2.0 | Playwright CLI |
 | ast-grep / Semgrep | enforceable Runes | CLI in `just check` | MIT / LGPL-2.1 (Semgrep OSS) | either one alone |
 | `just` | single entry point for gates | CLI | CC0 | make |
 | `mise` | tool installation and version pinning | CLI, consent-gated | MIT | manual install from `tools.toml` hints |
-| Codegrapher | symbol graph, blast radius | **trial**, CLI only, never MCP | Apache-2.0 | Serena |
+| Codegrapher | symbol graph, blast radius | **trial**, CLI only, never MCP; TypeScript repos only (it indexes Go and TS/JS) | Apache-2.0 | Serena |
 | EARS | requirement phrasing | convention | n/a | n/a |
 | Compound Engineering | multi-host converter **pattern** only | design reference | MIT | own converter |
 
 ## Always-on MCP servers (the complete list)
 
-Serena, Context7, Playwright, Basic Memory, Beads (if it exposes MCP), Sampo.
-Anything else is CLI. Adding a server requires a Rune and a re-measured context
+Serena, Context7, Playwright, Basic Memory, Sampo (decision 0011). Anything
+else is CLI, including Beads. Adding a server requires a Rune and a re-measured context
 budget.
 
 ## Deliberately excluded (and the condition that would change it)
