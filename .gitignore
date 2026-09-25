@@ -1,0 +1,27 @@
+# Artifacts: generated, rebuildable, never authoritative (docs/VOCABULARY.md)
+artifacts/
+.cache/
+
+# Build output
+/cli/target/
+target/
+node_modules/
+
+# Worktrees used by forge
+.worktrees/
+
+# Codegrapher trial store (decision 0010)
+.codegraph/
+
+# Local, per-developer files
+.env
+.env.*
+!.env.example
+*.local.json
+.DS_Store
+
+# SpecScore --fix lock
+.specscore-lifecycle.lock
+
+# SpecScore local state (locks; no event ledger is configured)
+.specscore/

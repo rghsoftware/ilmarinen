@@ -1,0 +1,199 @@
+# Tool manifest read by `ilmarinen doctor`.
+#
+# Fields per [tool.<name>]:
+#   detect    command whose stdout/stderr contains the version (first x.y[.z] wins)
+#   min       minimum acceptable version
+#   mise      key in mise.toml when mise can manage the tool; absent = unmanageable
+#   install   exact install command printed when mise is declined or unavailable
+#   required  false = warn only (trial or optional tools)
+#   role      one line: why Ilmarinen needs it
+#   scope     dev (developer machines only), ci (CI only) or all; `doctor --skip-mcp`
+#             (CI mode) checks ci and all only. The hosts are dev: CI never installs them.
+#
+# [tool.<name>.telemetry] is present for every tool that phones home by default:
+#   sends             what it sends and where, for the report
+#   env               per-process opt-out; the CLI, `just`, hooks and CI set these
+#   disable           persistent opt-out command `setup` runs
+#   confirm           command whose output proves the persistent opt-out
+#                     (run with the `env` opt-outs removed, so it shows saved state)
+#   confirmed_if / confirmed_unless   regex the confirm output must / must not match
+#   json_env          JSON settings file whose "env" object `setup` writes `env`
+#                     into, and `doctor` reads back (hosts with no status command)
+# A tool with neither `disable` nor `json_env` is env-only: doctor reports it as
+# unconfirmable. Sources: docs/tool-notes.md "Telemetry".
+# Versions verified on 2026-09-24; sources in docs/tool-notes.md.
+
+[tool.ilmarinen]
+detect = "ilmarinen --version"
+min = "0.1.0"
+install = "cargo install --locked --path <ilmarinen checkout>/cli  (after v0.1.0: mise use -g github:rghsoftware/ilmarinen@0.1.0)"
+required = true
+role = "this package's CLI; version must match the installed plugin"
+scope = "all"
+
+[tool.ilmarinen-sampo]
+detect = "ilmarinen-sampo --version"
+min = "0.1.0"
+install = "cargo install --locked --path <ilmarinen checkout>/cli  (after v0.1.0: mise use -g github:rghsoftware/ilmarinen@0.1.0)"
+required = true
+role = "Sampo MCP server (sampo.* tools); version must match the installed plugin"
+scope = "all"
+
+[tool.git]
+detect = "git --version"
+min = "2.40"
+install = "Install git from your OS package manager"
+required = true
+role = "version control; worktrees for forge"
+scope = "all"
+
+[tool.mise]
+detect = "mise --version"
+min = "2026.9.0"
+install = "curl https://mise.run | sh"
+required = true
+role = "consent-gated installer for everything below"
+scope = "all"
+
+[tool.mise.telemetry]
+sends = "installed tool name and version, OS/arch, hashed IP to mise-versions.jdx.dev"
+env = { MISE_USE_VERSIONS_HOST_TRACK = "0" }
+disable = "mise settings set use_versions_host_track false"
+confirm = "mise settings get use_versions_host_track"
+confirmed_if = '^\s*false\s*$'
+
+[tool.just]
+detect = "just --version"
+min = "1.58.0"
+mise = "just"
+install = "mise use -g just@1.58.0"
+required = true
+role = "single entry point for every gate"
+scope = "all"
+
+[tool.bd]
+detect = "bd version"
+min = "1.3.0"
+mise = "github:gastownhall/beads"
+install = "mise use -g github:gastownhall/beads@1.3.0"
+required = true
+role = "Beads task graph (plan of record)"
+scope = "all"
+
+[tool.bd.telemetry]
+sends = "command names, bd version, OS, hashed machine id to gastownhall-eventsapi.com"
+env = { BD_DISABLE_METRICS = "1" }
+disable = "bd metrics off"
+confirm = "bd metrics"
+confirmed_if = "Anonymous usage metrics: OFF"
+
+[tool.specscore]
+detect = "specscore version"
+min = "0.53.1"
+mise = "github:specscore/specscore-cli"
+install = "mise use -g github:specscore/specscore-cli@0.53.1"
+required = true
+role = "Blueprint and Rune format lint"
+scope = "all"
+
+[tool.specscore.telemetry]
+sends = "usage stats to PostHog EU, crash reports to Sentry EU"
+env = { SPECSCORE_TELEMETRY = "0" }
+disable = "specscore telemetry disable all"
+confirm = "specscore telemetry status"
+confirmed_unless = ':\s*enabled'
+
+[tool.ast-grep]
+detect = "ast-grep --version"
+min = "0.45.0"
+mise = "ast-grep"
+install = "mise use -g ast-grep@0.45.3"
+required = true
+role = "enforceable Runes in just check"
+scope = "all"
+
+[tool.uv]
+detect = "uv --version"
+min = "0.12.0"
+mise = "uv"
+install = "mise use -g uv@0.12.18"
+required = true
+role = "uvx launches Serena and Basic Memory MCP servers"
+scope = "all"
+
+[tool.jq]
+detect = "jq --version"
+min = "1.6"
+mise = "jq"
+install = "mise use -g jq@1.8.2"
+required = true
+role = "hook scripts parse the host's JSON on stdin"
+scope = "all"
+
+[tool.node]
+detect = "node --version"
+min = "22.0.0"
+install = "mise use -g node@22"
+required = true
+role = "npx launches Context7 and Playwright MCP servers"
+scope = "all"
+
+[tool.claude]
+detect = "claude --version"
+min = "2.1.277"
+install = "curl -fsSL https://claude.ai/install.sh | bash"
+required = true
+role = "host: Claude Code"
+scope = "dev"
+
+[tool.claude.telemetry]
+sends = "usage metrics to Anthropic and third-party logging; error reports; session surveys"
+env = { DISABLE_TELEMETRY = "1", DISABLE_ERROR_REPORTING = "1", CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = "1" }
+json_env = "~/.claude/settings.json"
+
+[tool.opencode]
+detect = "opencode --version"
+min = "1.18.0"
+install = "curl -fsSL https://opencode.ai/install | bash"
+required = true
+role = "host: OpenCode"
+scope = "dev"
+
+[tool.codegrapher]
+detect = "codegrapher version"
+min = "0.13.2"
+mise = "github:code-grapher/codegrapher"
+install = "mise use -g github:code-grapher/codegrapher@0.13.2"
+required = false
+role = "trial: symbol graph, CLI only (Go and TS/JS)"
+scope = "dev"
+
+[tool.semgrep]
+detect = "semgrep --version"
+min = "1.177.0"
+mise = "pypi:semgrep"
+install = "mise use -g pypi:semgrep@1.177.0"
+required = false
+role = "optional second rule engine for Runes"
+scope = "dev"
+
+[tool.semgrep.telemetry]
+sends = "pseudonymous metrics to metrics.semgrep.dev when registry rules are used or logged in"
+env = { SEMGREP_SEND_METRICS = "off" }
+
+[tool.cargo-nextest]
+detect = "cargo nextest --version"
+min = "0.9.146"
+mise = "aqua:nextest-rs/nextest/cargo-nextest"
+install = "mise use -g aqua:nextest-rs/nextest/cargo-nextest@0.9.146"
+required = false
+role = "`just test` runner for Rust repos"
+scope = "dev"
+
+[tool.docker]
+detect = "docker --version"
+min = "24.0.0"
+install = "Install Docker Engine or Docker Desktop: https://docs.docker.com/get-docker/"
+required = false
+role = "throwaway databases for just db-up"
+scope = "dev"

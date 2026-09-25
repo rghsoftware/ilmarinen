@@ -1,0 +1,15 @@
+# Pinned versions for the tools mise can manage (decision 0006).
+# `ilmarinen doctor` offers `mise install` for these; nothing installs without a yes.
+# Plain version strings only, so this file needs no `mise trust`.
+# `ubi:` is deprecated upstream; GitHub-release tools use the `github:` backend.
+
+[tools]
+just = "1.58.0"
+"github:gastownhall/beads" = "1.3.0"
+"github:specscore/specscore-cli" = "0.53.1"
+"github:code-grapher/codegrapher" = "0.13.2"
+ast-grep = "0.45.3"
+uv = "0.12.18"
+jq = "1.8.2"
+"pypi:semgrep" = "1.177.0"
+"aqua:nextest-rs/nextest/cargo-nextest" = "0.9.146"
