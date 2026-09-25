@@ -1,0 +1,61 @@
+# Publishes the package binaries (ilmarinen, ilmarinen-sampo) when a v* tag is
+# pushed. Asset names follow `<name>_<version>_<os>_<arch>.tar.gz` so mise's
+# github: backend picks the right one; both binaries sit at the archive root.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset: linux_amd64
+            rustflags: "-C target-feature=+crt-static"
+          - os: macos-14
+            target: aarch64-apple-darwin
+            asset: darwin_arm64
+            rustflags: ""
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        env:
+          RUSTFLAGS: ${{ matrix.rustflags }}
+        run: |
+          rustup target add ${{ matrix.target }}
+          cargo build --locked --release --manifest-path cli/Cargo.toml --target ${{ matrix.target }} --bin ilmarinen --bin ilmarinen-sampo
+      - name: Package
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          d=cli/target/${{ matrix.target }}/release
+          tar -C "$d" -czf "ilmarinen_${v}_${{ matrix.asset }}.tar.gz" ilmarinen ilmarinen-sampo
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.asset }}
+          path: ilmarinen_*.tar.gz
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum ilmarinen_*.tar.gz > checksums.txt
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
+            --notes "Binaries for the Ilmarinen CLI and the Sampo MCP server. See docs/retro.md." \
+            ilmarinen_*.tar.gz checksums.txt

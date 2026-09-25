@@ -24,6 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
       - uses: oven-sh/setup-bun@v2
       - name: Build the CLI
         run: just build
@@ -44,6 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: jdx/mise-action@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
       - uses: pnpm/action-setup@v6
         with:
           version: 12
