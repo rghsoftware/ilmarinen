@@ -1,0 +1,37 @@
+[package]
+name = "ilmarinen"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+# Development-only binaries for this repo (ilmarinen-convert); not installed by
+# `cargo install` or shipped in releases.
+dev = []
+
+[[bin]]
+name = "ilmarinen"
+path = "src/main.rs"
+
+[[bin]]
+name = "ilmarinen-sampo"
+path = "src/bin/ilmarinen-sampo.rs"
+
+[[bin]]
+name = "ilmarinen-convert"
+path = "src/bin/ilmarinen-convert.rs"
+required-features = ["dev"]
+
+[dependencies]
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+include_dir = "0.7.4"
+regex = "1.13.1"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151", features = ["preserve_order"] }
+sha2 = "0.11.0"
+similar = "3.2.0"
+toml = "1.1.6"
+
+[dev-dependencies]
+tempfile = "3.27.0"
