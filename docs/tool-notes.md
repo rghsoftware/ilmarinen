@@ -366,8 +366,13 @@ Docs: https://just.systems/man/en/ · https://github.com/casey/just/blob/master/
   plugins declare the same MCP server name, printing both plugin ids.
 - The package's binaries are tools like any other (`tools.toml`). Until the
   `v0.1.0` release exists their hint is `cargo install --locked --path cli`;
-  the `github:rghsoftware/ilmarinen` mise pin is added when the tag ships
-  (a pin to a missing release would break `mise install`). `ilmarinen-convert`
+  the `github:rghsoftware/ilmarinen` mise pin was added once `v0.1.0` shipped
+  (release assets `ilmarinen_0.1.0_{linux_amd64,darwin_arm64}.tar.gz`, both
+  binaries at the archive root). `mise ls-remote` hides it for 24 h because
+  of mise's default `minimum_release_age`, which filters only fuzzy version
+  requests (https://mise.jdx.dev/configuration/settings.html); the exact pin
+  `0.1.0` is unaffected. The `v0.1.0` tag predates its own pin (the pin can
+  only follow the release). `ilmarinen-convert`
   is dev-only (`--features dev`), not in `tools.toml`, not installed.
 - Hooks inside a linked worktree (tests/hooks.sh): the worktree top level is
   the `rm -rf` boundary (the main checkout counts as outside); the leak guard's

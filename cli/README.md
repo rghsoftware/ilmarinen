@@ -1,6 +1,7 @@
 # `ilmarinen` CLI
 
-Single static binary. Build with `just build`; test with `just test`.
+Install: `mise use -g github:rghsoftware/ilmarinen@0.1.0` (both binaries). Build
+from source with `just build`; test with `just test`.
 Templates, `tools.toml`, `mise.toml` and `plugin/` are compiled in.
 
 **Network rule:** init must succeed without network; network is used only for

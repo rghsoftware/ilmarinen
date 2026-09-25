@@ -26,7 +26,8 @@
 [tool.ilmarinen]
 detect = "ilmarinen --version"
 min = "0.1.0"
-install = "cargo install --locked --path <ilmarinen checkout>/cli  (after v0.1.0: mise use -g github:rghsoftware/ilmarinen@0.1.0)"
+mise = "github:rghsoftware/ilmarinen"
+install = "mise use -g github:rghsoftware/ilmarinen@0.1.0"
 required = true
 role = "this package's CLI; version must match the installed plugin"
 scope = "all"
@@ -34,7 +35,8 @@ scope = "all"
 [tool.ilmarinen-sampo]
 detect = "ilmarinen-sampo --version"
 min = "0.1.0"
-install = "cargo install --locked --path <ilmarinen checkout>/cli  (after v0.1.0: mise use -g github:rghsoftware/ilmarinen@0.1.0)"
+mise = "github:rghsoftware/ilmarinen"
+install = "mise use -g github:rghsoftware/ilmarinen@0.1.0"
 required = true
 role = "Sampo MCP server (sampo.* tools); version must match the installed plugin"
 scope = "all"
