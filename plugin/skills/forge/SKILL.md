@@ -23,7 +23,10 @@ description: Implement the next ready Beads issue in its own git worktree, tests
    `--force`, never touch `.env*`, and run migrations and database commands
    only against the local throwaway databases (`just db-up`). There are no
    production credentials here, by design; never go looking for them.
-8. Record progress: `bd update <id> --append-notes "<state>"`. Next: `verify`.
+8. Record progress: `bd update <id> --append-notes "<state>"`. A tests-first
+   issue closes now: `bd close <id> --reason "failing tests in <commit>"`, so
+   the implementation it blocks becomes ready. Next: `verify` (after the
+   implementing issue).
 
 If the work turns out bigger than routed (new interface, data model, or
 repo), stop and re-route.

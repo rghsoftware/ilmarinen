@@ -21,7 +21,9 @@ The plan of record is a Beads graph. Never write tasks or TODO lists in markdown
    changes; if none exists, write `specscore: none (standard)` explicitly.
    Use `--parent <epic-id>` to group under an epic.
 3. Order: `bd dep add <blocked> <blocker>` (the second blocks the first). Tests
-   that pin an AC come before the implementation they verify.
+   that pin an AC come before the implementation they verify. A tests-first
+   issue is done, and closed, when its failing tests are committed; only the
+   implementing issue waits for merge.
 4. Check the graph: `bd graph` or `bd dep tree <id>`; every issue has a
    reference, no cycles, nothing orphaned.
 5. **Gate 3.** Show the graph and stop for approval.
